@@ -95,14 +95,16 @@
     pendingAmount.textContent = `\u00a3${totals.pendingAmount || totals.reserved * 5}`;
   }
 
-  function createCell(text) {
+  function createCell(text, label) {
     const cell = document.createElement("td");
+    cell.dataset.label = label;
     cell.textContent = text || "";
     return cell;
   }
 
-  function createStatusCell(status) {
+  function createStatusCell(status, label) {
     const cell = document.createElement("td");
+    cell.dataset.label = label;
     const pill = document.createElement("span");
     pill.className = `status-pill ${status}`;
     pill.textContent = status;
@@ -112,6 +114,8 @@
 
   function createActionsCell(square) {
     const cell = document.createElement("td");
+    cell.className = "actions-cell";
+    cell.dataset.label = "Actions";
     const row = document.createElement("div");
     row.className = "action-row";
 
@@ -140,22 +144,24 @@
 
     for (const square of squares) {
       const row = document.createElement("tr");
-      row.appendChild(createCell(String(square.number)));
-      row.appendChild(createStatusCell(square.status));
-      row.appendChild(createCell(square.name));
-      row.appendChild(createCell(square.email));
-      row.appendChild(createCell(square.phone));
-      row.appendChild(createCell(formatCurrency(square.expectedDonation)));
-      row.appendChild(createCell(formatDate(square.createdAt)));
-      row.appendChild(createCell(formatDate(square.reservedAt)));
-      row.appendChild(createCell(formatDate(square.paidAt)));
+      row.appendChild(createCell(String(square.number), "Square"));
+      row.appendChild(createStatusCell(square.status, "Status"));
+      row.appendChild(createCell(square.name, "Name"));
+      row.appendChild(createCell(square.email, "Email"));
+      row.appendChild(createCell(square.phone, "Phone"));
+      row.appendChild(createCell(formatCurrency(square.expectedDonation), "Expected donation"));
+      row.appendChild(createCell(formatDate(square.createdAt), "Created"));
+      row.appendChild(createCell(formatDate(square.reservedAt), "Reserved"));
+      row.appendChild(createCell(formatDate(square.paidAt), "Paid"));
       row.appendChild(createActionsCell(square));
       tableBody.appendChild(row);
     }
 
     if (squares.length === 0) {
       const row = document.createElement("tr");
+      row.className = "empty-row";
       const cell = document.createElement("td");
+      cell.className = "empty-cell";
       cell.colSpan = 10;
       cell.textContent = "No squares match this filter.";
       row.appendChild(cell);

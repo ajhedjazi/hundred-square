@@ -435,6 +435,7 @@ select {
 
 .table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -452,6 +453,7 @@ td {
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;
+  overflow-wrap: anywhere;
 }
 
 th {
@@ -486,9 +488,22 @@ tr:last-child td {
 }
 
 .action-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(104px, 1fr));
   gap: 8px;
+  min-width: 224px;
+}
+
+.actions-cell {
+  min-width: 248px;
+  width: 248px;
+}
+
+.action-row .secondary-button {
+  width: 100%;
+  min-height: 42px;
+  padding-inline: 10px;
+  white-space: nowrap;
 }
 
 .admin-credit {
@@ -528,6 +543,92 @@ tr:last-child td {
 
   .admin-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .table-wrap table,
+  .table-wrap thead,
+  .table-wrap tbody,
+  .table-wrap tr,
+  .table-wrap th,
+  .table-wrap td {
+    display: block;
+  }
+
+  .table-wrap table {
+    min-width: 0;
+  }
+
+  .table-wrap thead {
+    display: none;
+  }
+
+  .table-wrap tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .table-wrap tr {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 10px 26px rgba(23, 32, 24, 0.08);
+  }
+
+  .table-wrap td {
+    display: grid;
+    grid-template-columns: minmax(112px, 38%) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    min-width: 0;
+    width: auto;
+    padding: 10px 12px;
+  }
+
+  .table-wrap td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .table-wrap td:last-child {
+    border-bottom: 0;
+  }
+
+  .table-wrap .actions-cell {
+    display: block;
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .table-wrap .actions-cell::before {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .table-wrap .action-row {
+    grid-template-columns: 1fr;
+    min-width: 0;
+  }
+
+  .table-wrap .action-row .secondary-button {
+    min-height: 46px;
+  }
+
+  .table-wrap .empty-row td {
+    display: block;
+  }
+
+  .table-wrap .empty-row td::before {
+    display: none;
   }
 
   .admin-credit {
@@ -1089,16 +1190,20 @@ body.public-page {
   background: var(--public-panel);
   color: var(--public-text);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
 }
 
 .confirmation-dialog {
   width: min(560px, calc(100% - 32px));
+  max-height: calc(100vh - 32px);
   border: 1px solid var(--public-line-strong);
   border-radius: 8px;
   padding: 0;
   background: var(--public-panel);
   color: var(--public-text);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+  overflow: auto;
 }
 
 .public-page .reservation-dialog::backdrop,
@@ -1360,6 +1465,21 @@ body.public-page {
   .fundraiser-hero h1 {
     font-size: 1.95rem;
     line-height: 1.04;
+  }
+
+  .reservation-dialog,
+  .confirmation-dialog {
+    width: calc(100% - 20px);
+    max-height: calc(100vh - 20px);
+  }
+
+  .reservation-form,
+  .confirmation-content {
+    padding: 16px;
+  }
+
+  .dialog-header {
+    gap: 10px;
   }
 
   .public-page .legend {
