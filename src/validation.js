@@ -16,6 +16,27 @@ function validateSquareNumber(value) {
   return number;
 }
 
+function normalizeSquareNumbers(body) {
+  const source = Array.isArray(body && body.numbers)
+    ? body.numbers
+    : [body && body.number];
+  const numbers = [];
+  const seen = new Set();
+
+  for (const value of source) {
+    const number = validateSquareNumber(value);
+
+    if (!number || seen.has(number)) {
+      continue;
+    }
+
+    seen.add(number);
+    numbers.push(number);
+  }
+
+  return numbers.sort((a, b) => a - b);
+}
+
 function isValidEmail(email) {
   if (typeof email !== "string" || email.length > 254) {
     return false;
@@ -26,13 +47,13 @@ function isValidEmail(email) {
 
 function validateReservationPayload(body) {
   const errors = [];
-  const number = validateSquareNumber(body && body.number);
+  const numbers = normalizeSquareNumbers(body);
   const name = sanitizeName(body && body.name);
   const email = String((body && body.email) || "").trim().toLowerCase();
   const confirmed = Boolean(body && body.confirmed);
 
-  if (!number) {
-    errors.push("Choose a valid square from 1 to 100.");
+  if (numbers.length === 0) {
+    errors.push("Choose at least one available square from 1 to 100.");
   }
 
   if (!name) {
@@ -48,14 +69,15 @@ function validateReservationPayload(body) {
   }
 
   if (!confirmed) {
-    errors.push("Confirm that your square is only confirmed once the donation has been received.");
+    errors.push("Confirm the fundraiser eligibility and Gift Aid statement before reserving.");
   }
 
   return {
     isValid: errors.length === 0,
     errors,
     data: {
-      number,
+      number: numbers[0] || null,
+      numbers,
       name,
       email,
       confirmed,
@@ -76,6 +98,7 @@ module.exports = {
   VALID_STATUSES,
   isValidEmail,
   normalizeStatusFilter,
+  normalizeSquareNumbers,
   sanitizeName,
   validateReservationPayload,
   validateSquareNumber,

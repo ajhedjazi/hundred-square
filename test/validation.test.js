@@ -32,7 +32,20 @@ test("validateReservationPayload requires all public form fields", () => {
 
   assert.equal(validation.isValid, true);
   assert.equal(validation.data.number, 7);
+  assert.deepEqual(validation.data.numbers, [7]);
   assert.equal(validation.data.email, "amir@example.com");
+});
+
+test("validateReservationPayload accepts multiple square numbers", () => {
+  const validation = validateReservationPayload({
+    numbers: [8, "3", 8],
+    name: "Amir",
+    email: "amir@example.com",
+    confirmed: true,
+  });
+
+  assert.equal(validation.isValid, true);
+  assert.deepEqual(validation.data.numbers, [3, 8]);
 });
 
 test("validateReservationPayload reports missing or invalid fields", () => {

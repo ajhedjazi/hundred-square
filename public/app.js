@@ -1,4 +1,6 @@
 (function () {
+  const DONATION_PER_SQUARE = 5;
+
   const requiredIds = {
     grid: "squareGrid",
     statusMessage: "statusMessage",
@@ -7,12 +9,21 @@
     form: "reservationForm",
     closeDialogButton: "closeDialogButton",
     selectedSquareLabel: "selectedSquareLabel",
+    reservationTotal: "reservationTotal",
     formError: "formError",
-    successPanel: "successPanel",
-    successMessage: "successMessage",
-    successReference: "successReference",
-    fundraiserButton: "fundraiserButton",
     nameInput: "name",
+    confirmedInput: "confirmed",
+    reserveSubmitButton: "reserveSubmitButton",
+    selectedSquaresSummary: "selectedSquaresSummary",
+    selectedCount: "selectedCount",
+    selectedTotal: "selectedTotal",
+    reserveSelectedButton: "reserveSelectedButton",
+    clearSelectionButton: "clearSelectionButton",
+    confirmationDialog: "confirmationDialog",
+    closeConfirmationButton: "closeConfirmationButton",
+    confirmationSquares: "confirmationSquares",
+    confirmationAmount: "confirmationAmount",
+    confirmationDonateButton: "confirmationDonateButton",
   };
 
   function getRequiredElements(ids) {
@@ -51,19 +62,38 @@
     form,
     closeDialogButton,
     selectedSquareLabel,
+    reservationTotal,
     formError,
-    successPanel,
-    successMessage,
-    successReference,
-    fundraiserButton,
     nameInput,
+    confirmedInput,
+    reserveSubmitButton,
+    selectedSquaresSummary,
+    selectedCount,
+    selectedTotal,
+    reserveSelectedButton,
+    clearSelectionButton,
+    confirmationDialog,
+    closeConfirmationButton,
+    confirmationSquares,
+    confirmationAmount,
+    confirmationDonateButton,
   } = elements;
 
-  let selectedSquare = null;
-  let selectedSquareButton = null;
+  const pickSquaresButton = document.getElementById("pickSquaresButton");
+  const gridPanel = document.getElementById("gridPanel");
+  const selectedNumbers = new Set();
 
-  successPanel.hidden = true;
-  successPanel.classList.add("hidden");
+  function formatCurrency(amount) {
+    return `\u00a3${amount}`;
+  }
+
+  function getSelectedNumbers() {
+    return Array.from(selectedNumbers).sort((a, b) => a - b);
+  }
+
+  function formatNumbers(numbers) {
+    return numbers.join(", ");
+  }
 
   function setStatus(message) {
     statusMessage.textContent = message || "";
@@ -73,28 +103,62 @@
     publicTotals.textContent = `${totals.available} available | ${totals.reserved} reserved | ${totals.paid} paid`;
   }
 
-  function clearSelectedSquare() {
-    if (!selectedSquareButton) {
+  function updateSubmitButton() {
+    reserveSubmitButton.disabled = !confirmedInput.checked;
+  }
+
+  function renderSelectionSummary() {
+    const numbers = getSelectedNumbers();
+    const count = numbers.length;
+    const total = count * DONATION_PER_SQUARE;
+
+    selectedSquaresSummary.textContent = count === 0 ? "None yet" : formatNumbers(numbers);
+    selectedCount.textContent = `${count} selected`;
+    selectedTotal.textContent = formatCurrency(total);
+    reserveSelectedButton.disabled = count === 0;
+    clearSelectionButton.disabled = count === 0;
+  }
+
+  function clearSelection() {
+    selectedNumbers.clear();
+
+    for (const button of grid.querySelectorAll(".square.selected")) {
+      button.classList.remove("selected");
+      button.setAttribute("aria-pressed", "false");
+    }
+
+    renderSelectionSummary();
+  }
+
+  function toggleSquare(number, button) {
+    if (selectedNumbers.has(number)) {
+      selectedNumbers.delete(number);
+      button.classList.remove("selected");
+      button.setAttribute("aria-pressed", "false");
+    } else {
+      selectedNumbers.add(number);
+      button.classList.add("selected");
+      button.setAttribute("aria-pressed", "true");
+    }
+
+    renderSelectionSummary();
+  }
+
+  function openReservationForm() {
+    const numbers = getSelectedNumbers();
+
+    if (numbers.length === 0) {
+      setStatus("Choose at least one available square first.");
       return;
     }
 
-    selectedSquareButton.classList.remove("selected");
-    selectedSquareButton.setAttribute("aria-pressed", "false");
-    selectedSquareButton = null;
-  }
-
-  function openReservationForm(number, button) {
-    clearSelectedSquare();
-    selectedSquare = number;
-    selectedSquareButton = button;
-    selectedSquareLabel.textContent = number;
+    selectedSquareLabel.textContent = numbers.length === 1
+      ? `square ${numbers[0]}`
+      : `squares ${formatNumbers(numbers)}`;
+    reservationTotal.textContent = formatCurrency(numbers.length * DONATION_PER_SQUARE);
     form.reset();
     formError.textContent = "";
-
-    if (selectedSquareButton) {
-      selectedSquareButton.classList.add("selected");
-      selectedSquareButton.setAttribute("aria-pressed", "true");
-    }
+    updateSubmitButton();
 
     if (typeof dialog.showModal === "function") {
       dialog.showModal();
@@ -106,13 +170,36 @@
   }
 
   function closeReservationForm() {
-    selectedSquare = null;
-    clearSelectedSquare();
-
     if (typeof dialog.close === "function" && dialog.open) {
       dialog.close();
     } else {
       dialog.removeAttribute("open");
+    }
+  }
+
+  function closeConfirmation() {
+    if (typeof confirmationDialog.close === "function" && confirmationDialog.open) {
+      confirmationDialog.close();
+    } else {
+      confirmationDialog.removeAttribute("open");
+    }
+  }
+
+  function showConfirmation(data) {
+    const numbers = Array.isArray(data.numbers) && data.numbers.length > 0
+      ? data.numbers
+      : data.squares.map((square) => square.number);
+    const totalAmount = data.totalAmount || numbers.length * DONATION_PER_SQUARE;
+
+    confirmationSquares.textContent = formatNumbers(numbers);
+    confirmationAmount.textContent = formatCurrency(totalAmount);
+    confirmationDonateButton.href = data.fundraiserUrl;
+    confirmationDonateButton.textContent = `Donate ${formatCurrency(totalAmount)} now`;
+
+    if (typeof confirmationDialog.showModal === "function") {
+      confirmationDialog.showModal();
+    } else {
+      confirmationDialog.setAttribute("open", "");
     }
   }
 
@@ -127,25 +214,41 @@
       console.error(`Expected 100 squares, received ${squares.length}.`, squares);
     }
 
+    const availableNumbers = new Set(
+      squares
+        .filter((square) => square.status === "available")
+        .map((square) => square.number)
+    );
+
+    for (const number of getSelectedNumbers()) {
+      if (!availableNumbers.has(number)) {
+        selectedNumbers.delete(number);
+      }
+    }
+
     grid.innerHTML = "";
 
     for (const square of squares) {
       const status = square.status || "available";
       const button = document.createElement("button");
+      const isSelected = selectedNumbers.has(square.number);
+
       button.type = "button";
-      button.className = `square ${status}`;
+      button.className = `square ${status}${isSelected ? " selected" : ""}`;
       button.textContent = square.number;
       button.disabled = status !== "available";
       button.setAttribute("role", "gridcell");
       button.setAttribute("aria-label", `Square ${square.number}, ${status}`);
 
       if (status === "available") {
-        button.setAttribute("aria-pressed", "false");
-        button.addEventListener("click", () => openReservationForm(square.number, button));
+        button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+        button.addEventListener("click", () => toggleSquare(square.number, button));
       }
 
       grid.appendChild(button);
     }
+
+    renderSelectionSummary();
   }
 
   function renderLoadingSquares() {
@@ -180,27 +283,24 @@
     return new FormData(form).get(name);
   }
 
-  function showSuccess(data) {
-    successPanel.hidden = false;
-    successPanel.classList.remove("hidden");
-    successMessage.textContent = data.message;
-    successReference.textContent = `Donation reference: ${data.donationReference}`;
-    fundraiserButton.href = data.fundraiserUrl;
-    successPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     formError.textContent = "";
 
-    if (!selectedSquare) {
-      formError.textContent = "Choose a square before submitting the form.";
+    const numbers = getSelectedNumbers();
+
+    if (numbers.length === 0) {
+      formError.textContent = "Choose at least one available square before submitting the form.";
       return;
     }
 
-    const submitButton = form.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.textContent = "Reserving...";
+    if (!confirmedInput.checked) {
+      formError.textContent = "Confirm the fundraiser eligibility and Gift Aid statement before reserving.";
+      return;
+    }
+
+    reserveSubmitButton.disabled = true;
+    reserveSubmitButton.textContent = "Reserving...";
 
     try {
       const response = await fetch("/api/reservations", {
@@ -209,7 +309,7 @@
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          number: selectedSquare,
+          numbers,
           name: getFieldValue("name"),
           email: getFieldValue("email"),
           confirmed: Boolean(getFieldValue("confirmed")),
@@ -220,26 +320,35 @@
 
       if (!response.ok) {
         const detail = Array.isArray(data.details) ? data.details.join(" ") : data.error;
-        throw new Error(detail || "Could not reserve that square.");
+        throw new Error(detail || "Could not reserve those squares.");
       }
 
       closeReservationForm();
-      showSuccess(data);
+      clearSelection();
+      showConfirmation(data);
       await loadSquares();
     } catch (error) {
       formError.textContent = error.message;
     } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = "Reserve square";
+      reserveSubmitButton.textContent = "Reserve selected square(s)";
+      updateSubmitButton();
     }
   });
 
   closeDialogButton.addEventListener("click", closeReservationForm);
-  dialog.addEventListener("close", () => {
-    selectedSquare = null;
-    clearSelectedSquare();
-  });
+  confirmedInput.addEventListener("change", updateSubmitButton);
+  reserveSelectedButton.addEventListener("click", openReservationForm);
+  clearSelectionButton.addEventListener("click", clearSelection);
+  closeConfirmationButton.addEventListener("click", closeConfirmation);
+
+  if (pickSquaresButton && gridPanel) {
+    pickSquaresButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      gridPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   renderLoadingSquares();
+  renderSelectionSummary();
   loadSquares();
 })();

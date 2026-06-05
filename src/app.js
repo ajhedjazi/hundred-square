@@ -4,7 +4,7 @@ const {
   createPostgresStore,
   mapAdminSquare,
   mapPublicSquare,
-  reserveSquare,
+  reserveSquares,
 } = require("./db");
 const { createSquaresCsv } = require("./csv");
 const { sendReservationEmail } = require("./email");
@@ -97,16 +97,18 @@ function createApp({ store, pool, config }) {
         throw createHttpError(400, "Please check the reservation form.", validation.errors);
       }
 
-      const { square, donationReference } = await storage.reserveSquare(validation.data);
+      const reserve = storage.reserveSquares || storage.reserveSquare;
+      const { squares, totalAmount } = await reserve(validation.data);
+      const numbers = squares.map((square) => square.number);
 
-      const message = `Your square has been reserved. Please donate \u00a35 using the fundraiser link below and use the reference: ${donationReference}. Your square is confirmed once payment has been received.`;
+      const message = `Your square${numbers.length === 1 ? " has" : "s have"} been reserved. Please now donate \u00a3${totalAmount} using the button below. Only paid squares will be entered into the draw.`;
 
       try {
         await sendReservationEmail(config, {
           name: validation.data.name,
           email: validation.data.email,
-          number: validation.data.number,
-          donationReference,
+          numbers,
+          totalAmount,
           fundraiserUrl: config.fundraiserUrl,
         });
       } catch (emailError) {
@@ -116,8 +118,10 @@ function createApp({ store, pool, config }) {
       res.status(201).json({
         message,
         fundraiserUrl: config.fundraiserUrl,
-        donationReference,
-        square: mapPublicSquare(square),
+        numbers,
+        totalAmount,
+        squares: squares.map(mapPublicSquare),
+        square: mapPublicSquare(squares[0]),
       });
     } catch (error) {
       next(error);
@@ -215,5 +219,5 @@ function createApp({ store, pool, config }) {
 
 module.exports = {
   createApp,
-  reserveSquare,
+  reserveSquares,
 };

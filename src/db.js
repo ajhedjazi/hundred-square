@@ -63,6 +63,8 @@ async function getStatusCounts(pool) {
 
   return {
     ...counts,
+    confirmedRaised: counts.paid * 5,
+    pendingAmount: counts.reserved * 5,
     estimatedRaised: counts.paid * 5,
   };
 }
@@ -92,50 +94,52 @@ async function listAdminSquares(pool, status) {
   return result.rows;
 }
 
-async function reserveSquare(pool, reservation) {
+async function reserveSquares(pool, reservation) {
   const client = await pool.connect();
   let inTransaction = false;
+  const numbers = reservation.numbers || [reservation.number];
 
   try {
     await client.query("BEGIN");
     inTransaction = true;
 
     const existing = await client.query(
-      "SELECT id, number, status FROM squares WHERE number = $1 FOR UPDATE",
-      [reservation.number]
+      "SELECT id, number, status FROM squares WHERE number = ANY($1::int[]) ORDER BY number ASC FOR UPDATE",
+      [numbers]
     );
 
-    if (existing.rowCount === 0) {
-      throw createHttpError(404, "That square does not exist.");
+    if (existing.rowCount !== numbers.length) {
+      throw createHttpError(404, "One or more selected squares do not exist.");
     }
 
-    if (existing.rows[0].status !== "available") {
-      throw createHttpError(409, "That square has already been reserved. Please choose another one.");
+    const unavailable = existing.rows.filter((row) => row.status !== "available");
+
+    if (unavailable.length > 0) {
+      throw createHttpError(409, "One or more selected squares have already been reserved. Please choose another one.");
     }
 
-    const donationReference = `Square ${reservation.number} - ${reservation.name}`;
     const updated = await client.query(
       `
         UPDATE squares
         SET status = 'reserved',
             name = $1,
             email = $2,
-            donation_reference = $3,
+            donation_reference = NULL,
             reserved_at = NOW(),
             paid_at = NULL,
             updated_at = NOW()
-        WHERE number = $4
+        WHERE number = ANY($3::int[])
         RETURNING *;
       `,
-      [reservation.name, reservation.email, donationReference, reservation.number]
+      [reservation.name, reservation.email, numbers]
     );
 
     await client.query("COMMIT");
     inTransaction = false;
 
     return {
-      square: updated.rows[0],
-      donationReference,
+      squares: updated.rows.sort((a, b) => a.number - b.number),
+      totalAmount: numbers.length * 5,
     };
   } catch (error) {
     if (inTransaction) {
@@ -146,6 +150,18 @@ async function reserveSquare(pool, reservation) {
   } finally {
     client.release();
   }
+}
+
+async function reserveSquare(pool, reservation) {
+  const result = await reserveSquares(pool, {
+    ...reservation,
+    numbers: reservation.numbers || [reservation.number],
+  });
+
+  return {
+    ...result,
+    square: result.squares[0],
+  };
 }
 
 async function markSquarePaid(pool, number) {
@@ -223,6 +239,7 @@ function createPostgresStore(pool) {
     listAdminSquares: (status) => listAdminSquares(pool, status),
     getStatusCounts: () => getStatusCounts(pool),
     reserveSquare: (reservation) => reserveSquare(pool, reservation),
+    reserveSquares: (reservation) => reserveSquares(pool, reservation),
     markSquarePaid: (number) => markSquarePaid(pool, number),
     releaseSquare: (number) => releaseSquare(pool, number),
     close: () => pool.end(),
@@ -241,4 +258,5 @@ module.exports = {
   markSquarePaid,
   releaseSquare,
   reserveSquare,
+  reserveSquares,
 };

@@ -92,6 +92,8 @@ function calculateStatusCounts(squares) {
 
   return {
     ...counts,
+    confirmedRaised: counts.paid * 5,
+    pendingAmount: counts.reserved * 5,
     estimatedRaised: counts.paid * 5,
   };
 }
@@ -130,6 +132,36 @@ async function createLocalFileStore(filePath) {
     return data.squares.find((square) => square.number === number);
   }
 
+  function reserveSelectedSquares(reservation) {
+    const numbers = reservation.numbers || [reservation.number];
+    const selectedSquares = numbers.map(findSquare);
+
+    if (selectedSquares.some((square) => !square)) {
+      throw createHttpError(404, "One or more selected squares do not exist.");
+    }
+
+    if (selectedSquares.some((square) => square.status !== "available")) {
+      throw createHttpError(409, "One or more selected squares have already been reserved. Please choose another one.");
+    }
+
+    const timestamp = nowIso();
+
+    for (const square of selectedSquares) {
+      square.status = "reserved";
+      square.name = reservation.name;
+      square.email = reservation.email;
+      square.donation_reference = null;
+      square.reserved_at = timestamp;
+      square.paid_at = null;
+      square.updated_at = timestamp;
+    }
+
+    return {
+      squares: selectedSquares.map(cloneRow),
+      totalAmount: selectedSquares.length * 5,
+    };
+  }
+
   async function readRows(getRows) {
     const currentData = await loadData();
     return sortByNumber(getRows(currentData)).map(cloneRow);
@@ -163,34 +195,15 @@ async function createLocalFileStore(filePath) {
       const currentData = await loadData();
       return calculateStatusCounts(currentData.squares);
     },
-    reserveSquare: (reservation) =>
-      mutate(() => {
-        const square = findSquare(reservation.number);
+    reserveSquares: (reservation) => mutate(() => reserveSelectedSquares(reservation)),
+    reserveSquare: async (reservation) => {
+      const result = await mutate(() => reserveSelectedSquares(reservation));
 
-        if (!square) {
-          throw createHttpError(404, "That square does not exist.");
-        }
-
-        if (square.status !== "available") {
-          throw createHttpError(409, "That square has already been reserved. Please choose another one.");
-        }
-
-        const timestamp = nowIso();
-        const donationReference = `Square ${reservation.number} - ${reservation.name}`;
-
-        square.status = "reserved";
-        square.name = reservation.name;
-        square.email = reservation.email;
-        square.donation_reference = donationReference;
-        square.reserved_at = timestamp;
-        square.paid_at = null;
-        square.updated_at = timestamp;
-
-        return {
-          square: cloneRow(square),
-          donationReference,
-        };
-      }),
+      return {
+        ...result,
+        square: result.squares[0],
+      };
+    },
     markSquarePaid: (number) =>
       mutate(() => {
         const square = findSquare(number);

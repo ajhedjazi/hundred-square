@@ -3,7 +3,6 @@ const CSV_COLUMNS = [
   ["Status", "status"],
   ["Name", "name"],
   ["Email", "email"],
-  ["Donation reference", "donation_reference"],
   ["Reserved time", "reserved_at"],
   ["Paid time", "paid_at"],
 ];

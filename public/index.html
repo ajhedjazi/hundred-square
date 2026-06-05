@@ -12,18 +12,51 @@
         <div class="hero-inner">
           <a class="admin-link" href="/admin">Admin</a>
           <p class="eyebrow">Andy's Man Club fundraiser</p>
-          <h1 id="heroTitle">
-            <span>Choose your square.</span>
-            <span>Back the run.</span>
-            <span>Help men talk.</span>
-          </h1>
-          <p class="lede">Pick a number, reserve it with your details, then donate &pound;5 through the official fundraiser page. Every square helps support Andy's Man Club and the message that it's okay to talk.</p>
+          <div class="hero-heading-row">
+            <h1 id="heroTitle">Win a &pound;200 prize and support Andy's Man Club</h1>
+            <div class="amc-stamp" aria-label="Andy's Man Club">
+              <!-- If public/assets/amc-logo.png is missing, the text fallback is shown. -->
+              <img src="assets/amc-logo.png" alt="Andy's Man Club" onerror="this.hidden = true; this.nextElementSibling.hidden = false;">
+              <span hidden>ANDY'S MAN CLUB</span>
+            </div>
+          </div>
+          <p class="lede">Choose your square, reserve it online, and donate &pound;5 per square to support Andy's Man Club. Only paid squares will be entered into the draw.</p>
+          <div class="hero-summary" aria-label="Fundraiser summary">
+            <span>100 squares</span>
+            <span>&pound;5 each</span>
+            <span>&pound;200 prize</span>
+          </div>
+          <a id="pickSquaresButton" class="primary-button hero-cta" href="#gridPanel">Pick your square</a>
         </div>
       </section>
 
       <div class="public-content">
         <section class="notice" aria-label="Fundraiser information">
-          <p>This fundraiser uses an official donation page. Squares are reserved first and manually confirmed after donation. Please do not claim Gift Aid if your donation is for a prize square/raffle entry.</p>
+          <p>Squares are reserved first and manually confirmed after donation. Only paid squares are entered into the draw. Please do not claim Gift Aid if your donation is for a prize square/raffle entry.</p>
+        </section>
+
+        <section class="rules-card" aria-labelledby="rulesTitle">
+          <div>
+            <p class="section-kicker">Important information</p>
+            <h2 id="rulesTitle">Fundraiser rules</h2>
+          </div>
+          <ul class="rules-list">
+            <li>Each square costs &pound;5.</li>
+            <li>Prize: &pound;200 to the winning paid square.</li>
+            <li>You can choose one or more available squares.</li>
+            <li>After reserving, please donate the correct amount using the official fundraiser button.</li>
+            <li>Your square(s) are reserved first, but only entered into the draw once payment is confirmed.</li>
+            <li>Reserved squares are held for 24 hours pending payment.</li>
+            <li>Unpaid reserved squares may be released and made available again.</li>
+            <li>Winner will be chosen at random from paid squares only.</li>
+            <li>Minimum age to enter: 16+.</li>
+            <li>Please only enter if you are based in the UK.</li>
+            <li>Please do not claim Gift Aid if your donation is for a prize square/raffle entry.</li>
+            <li>The winner will be contacted using the details provided.</li>
+            <li>The winner's name will only be shared publicly with permission.</li>
+            <li>If all squares do not sell, the organiser may still proceed with the draw using paid entries only or extend the fundraiser.</li>
+            <li>Draw date/time to be confirmed by the organiser.</li>
+          </ul>
         </section>
 
         <section class="toolbar" aria-label="Square status key">
@@ -35,24 +68,30 @@
           <p id="publicTotals" class="totals" aria-live="polite"></p>
         </section>
 
-        <section class="grid-panel" aria-labelledby="gridTitle">
+        <section id="gridPanel" class="grid-panel" aria-labelledby="gridTitle">
           <div class="grid-panel-header">
             <div>
               <p class="section-kicker">100-square board</p>
               <h2 id="gridTitle">Pick a number from 1 to 100</h2>
-              <p>Available squares can be reserved now. Reserved and paid squares are locked while donations are checked.</p>
+              <p>Select one or more available squares. Reserved and paid squares are locked while donations are checked.</p>
+            </div>
+          </div>
+          <div class="selection-panel" aria-live="polite">
+            <div>
+              <span class="selection-label">Selected squares</span>
+              <strong id="selectedSquaresSummary">None yet</strong>
+            </div>
+            <div class="selection-totals">
+              <span id="selectedCount">0 selected</span>
+              <strong id="selectedTotal">&pound;0</strong>
+            </div>
+            <div class="selection-actions">
+              <button id="reserveSelectedButton" class="primary-button" type="button" disabled>Reserve selected</button>
+              <button id="clearSelectionButton" class="secondary-button" type="button" disabled>Clear</button>
             </div>
           </div>
           <div id="statusMessage" class="status-message" aria-live="polite"></div>
           <div id="squareGrid" class="square-grid" role="grid" aria-label="100 fundraiser squares"></div>
-        </section>
-
-        <section id="successPanel" class="success-panel hidden" aria-live="polite" hidden>
-          <p class="section-kicker">Next step</p>
-          <h2>Reservation received</h2>
-          <p id="successMessage"></p>
-          <p class="reference" id="successReference"></p>
-          <a id="fundraiserButton" class="primary-button" href="#" target="_blank" rel="noopener">Donate using official fundraiser link</a>
         </section>
 
         <footer class="builder-credit" aria-label="Site credit">
@@ -66,8 +105,13 @@
     <dialog id="reservationDialog" class="reservation-dialog">
       <form id="reservationForm" class="reservation-form">
         <div class="dialog-header">
-          <h2>Reserve square <span id="selectedSquareLabel"></span></h2>
+          <h2>Reserve <span id="selectedSquareLabel"></span></h2>
           <button class="icon-button" type="button" id="closeDialogButton" aria-label="Close reservation form">x</button>
+        </div>
+
+        <div class="dialog-summary">
+          <span>Total to donate</span>
+          <strong id="reservationTotal">&pound;0</strong>
         </div>
 
         <div class="field">
@@ -82,13 +126,38 @@
 
         <label class="checkbox-row">
           <input id="confirmed" name="confirmed" type="checkbox" required>
-          <span>I understand my square is only confirmed once my &pound;5 donation has been received.</span>
+          <span>I confirm I am 16 or over, I understand that only paid squares are entered into the draw, and I will not claim Gift Aid for this prize-square entry.</span>
         </label>
+
+        <p class="privacy-note">Your details are only used to manage this fundraiser, confirm payment, and contact the winner. They will not be shown publicly.</p>
 
         <p id="formError" class="form-error" aria-live="polite"></p>
 
-        <button class="primary-button" type="submit">Reserve square</button>
+        <button id="reserveSubmitButton" class="primary-button" type="submit" disabled>Reserve selected square(s)</button>
       </form>
+    </dialog>
+
+    <dialog id="confirmationDialog" class="confirmation-dialog">
+      <div class="confirmation-content">
+        <div class="dialog-header">
+          <h2>Your square(s) have been reserved.</h2>
+          <button class="icon-button" type="button" id="closeConfirmationButton" aria-label="Close confirmation">x</button>
+        </div>
+        <dl class="confirmation-list">
+          <div>
+            <dt>Selected square(s)</dt>
+            <dd id="confirmationSquares"></dd>
+          </div>
+          <div>
+            <dt>Total amount to donate</dt>
+            <dd id="confirmationAmount"></dd>
+          </div>
+        </dl>
+        <p>Please now donate using the button below. I'll confirm paid squares manually in the admin dashboard.</p>
+        <p>Only paid squares will be entered into the draw.</p>
+        <p class="gift-aid-warning">Because this is a prize square/raffle entry, please do not claim Gift Aid on this donation.</p>
+        <a id="confirmationDonateButton" class="primary-button donate-button" href="https://bit.ly/amir-gnr-amc" target="_blank" rel="noopener">Donate now</a>
+      </div>
     </dialog>
 
     <script src="app.js" defer></script>

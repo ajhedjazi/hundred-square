@@ -14,6 +14,7 @@
   const reservedCount = document.getElementById("reservedCount");
   const paidCount = document.getElementById("paidCount");
   const estimatedRaised = document.getElementById("estimatedRaised");
+  const pendingAmount = document.getElementById("pendingAmount");
 
   let adminPassword = sessionStorage.getItem("adminPassword") || "";
 
@@ -85,7 +86,8 @@
     availableCount.textContent = totals.available;
     reservedCount.textContent = totals.reserved;
     paidCount.textContent = totals.paid;
-    estimatedRaised.textContent = `\u00a3${totals.estimatedRaised}`;
+    estimatedRaised.textContent = `\u00a3${totals.confirmedRaised || totals.estimatedRaised}`;
+    pendingAmount.textContent = `\u00a3${totals.pendingAmount || totals.reserved * 5}`;
   }
 
   function createCell(text) {
@@ -137,7 +139,6 @@
       row.appendChild(createStatusCell(square.status));
       row.appendChild(createCell(square.name));
       row.appendChild(createCell(square.email));
-      row.appendChild(createCell(square.donationReference));
       row.appendChild(createCell(formatDate(square.reservedAt)));
       row.appendChild(createCell(formatDate(square.paidAt)));
       row.appendChild(createActionsCell(square));
@@ -147,7 +148,7 @@
     if (squares.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
-      cell.colSpan = 8;
+      cell.colSpan = 7;
       cell.textContent = "No squares match this filter.";
       row.appendChild(cell);
       tableBody.appendChild(row);

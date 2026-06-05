@@ -1,19 +1,27 @@
-function buildReservationEmail({ name, number, donationReference, fundraiserUrl }) {
+function formatSquares(numbers) {
+  return numbers.length === 1 ? String(numbers[0]) : numbers.join(", ");
+}
+
+function buildReservationEmail({ name, numbers, totalAmount, fundraiserUrl }) {
+  const squareNumbers = formatSquares(numbers || []);
+  const isSingleSquare = numbers && numbers.length === 1;
+  const squareLabel = isSingleSquare ? "square" : "squares";
+  const enteredCopy = isSingleSquare
+    ? "Your square is reserved for now and will only be entered into the draw once payment has been confirmed."
+    : "Your squares are reserved for now and will only be entered into the draw once payment has been confirmed.";
+
   return {
-    subject: "Your 100 Square Number",
+    subject: "Your 100-square reservation",
     text: `Hi ${name},
 
 Thanks for supporting my Andy's Man Club fundraiser.
 
-You have reserved square ${number}.
+You have reserved ${squareLabel} ${squareNumbers}.
 
-Please donate \u00a35 using this official fundraiser link:
+Please now donate \u00a3${totalAmount} using this official fundraiser link:
 ${fundraiserUrl}
 
-Use this donation reference:
-${donationReference}
-
-Your square is reserved for now and will be confirmed once the \u00a35 donation has been received.
+${enteredCopy}
 
 Important: please do not claim Gift Aid if this donation is being made as payment for a prize square/raffle entry.
 
@@ -55,5 +63,6 @@ async function sendReservationEmail(config, reservation) {
 
 module.exports = {
   buildReservationEmail,
+  formatSquares,
   sendReservationEmail,
 };
