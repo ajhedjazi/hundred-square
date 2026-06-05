@@ -7,6 +7,8 @@ const requiredFiles = [
   "src/csv.js",
   "src/db.js",
   "src/email.js",
+  "src/errors.js",
+  "src/local-store.js",
   "public/index.html",
   "public/admin.html",
   "public/app.js",

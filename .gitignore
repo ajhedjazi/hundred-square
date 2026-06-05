@@ -1,6 +1,7 @@
 node_modules/
 .env
 .env.local
+.data/
 npm-debug.log*
 coverage/
 .DS_Store

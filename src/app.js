@@ -1,24 +1,19 @@
 const express = require("express");
 const path = require("path");
 const {
-  getStatusCounts,
+  createPostgresStore,
   mapAdminSquare,
   mapPublicSquare,
+  reserveSquare,
 } = require("./db");
 const { createSquaresCsv } = require("./csv");
 const { sendReservationEmail } = require("./email");
+const { createHttpError } = require("./errors");
 const {
   normalizeStatusFilter,
   validateReservationPayload,
   validateSquareNumber,
 } = require("./validation");
-
-function createHttpError(status, message, details) {
-  const error = new Error(message);
-  error.status = status;
-  error.details = details;
-  return error;
-}
 
 function requireAdmin(config) {
   return (req, res, next) => {
@@ -38,65 +33,10 @@ function requireAdmin(config) {
   };
 }
 
-async function reserveSquare(pool, reservation) {
-  const client = await pool.connect();
-  let inTransaction = false;
-
-  try {
-    await client.query("BEGIN");
-    inTransaction = true;
-
-    const existing = await client.query(
-      "SELECT id, number, status FROM squares WHERE number = $1 FOR UPDATE",
-      [reservation.number]
-    );
-
-    if (existing.rowCount === 0) {
-      throw createHttpError(404, "That square does not exist.");
-    }
-
-    if (existing.rows[0].status !== "available") {
-      throw createHttpError(409, "That square has already been reserved. Please choose another one.");
-    }
-
-    const donationReference = `Square ${reservation.number} - ${reservation.name}`;
-    const updated = await client.query(
-      `
-        UPDATE squares
-        SET status = 'reserved',
-            name = $1,
-            email = $2,
-            donation_reference = $3,
-            reserved_at = NOW(),
-            paid_at = NULL,
-            updated_at = NOW()
-        WHERE number = $4
-        RETURNING *;
-      `,
-      [reservation.name, reservation.email, donationReference, reservation.number]
-    );
-
-    await client.query("COMMIT");
-    inTransaction = false;
-
-    return {
-      square: updated.rows[0],
-      donationReference,
-    };
-  } catch (error) {
-    if (inTransaction) {
-      await client.query("ROLLBACK");
-    }
-
-    throw error;
-  } finally {
-    client.release();
-  }
-}
-
-function createApp({ pool, config }) {
+function createApp({ store, pool, config }) {
   const app = express();
   const publicDir = path.resolve(__dirname, "..", "public");
+  const storage = store || createPostgresStore(pool);
 
   app.use(express.json({ limit: "32kb" }));
 
@@ -118,17 +58,31 @@ function createApp({ pool, config }) {
     });
   });
 
+  app.get("/api/health", (req, res) => {
+    res.json({ ok: true });
+  });
+
   app.get("/api/squares", async (req, res, next) => {
     try {
-      const result = await pool.query(`
-        SELECT number, status
-        FROM squares
-        ORDER BY number ASC;
-      `);
+      const squares = await storage.listPublicSquares();
 
       res.json({
-        squares: result.rows.map(mapPublicSquare),
-        totals: await getStatusCounts(pool),
+        squares: squares.map(mapPublicSquare),
+        totals: await storage.getStatusCounts(),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/reservations", async (req, res, next) => {
+    try {
+      const squares = await storage.listPublicSquares();
+      const reservations = squares.filter((square) => square.status !== "available");
+
+      res.json({
+        reservations: reservations.map(mapPublicSquare),
+        totals: await storage.getStatusCounts(),
       });
     } catch (error) {
       next(error);
@@ -143,7 +97,7 @@ function createApp({ pool, config }) {
         throw createHttpError(400, "Please check the reservation form.", validation.errors);
       }
 
-      const { square, donationReference } = await reserveSquare(pool, validation.data);
+      const { square, donationReference } = await storage.reserveSquare(validation.data);
 
       const message = `Your square has been reserved. Please donate \u00a35 using the fundraiser link below and use the reference: ${donationReference}. Your square is confirmed once payment has been received.`;
 
@@ -178,21 +132,11 @@ function createApp({ pool, config }) {
         throw createHttpError(400, "Filter must be Available, Reserved, or Paid.");
       }
 
-      const query = status
-        ? {
-            sql: "SELECT * FROM squares WHERE status = $1 ORDER BY number ASC;",
-            values: [status],
-          }
-        : {
-            sql: "SELECT * FROM squares ORDER BY number ASC;",
-            values: [],
-          };
-
-      const result = await pool.query(query.sql, query.values);
+      const squares = await storage.listAdminSquares(status);
 
       res.json({
-        squares: result.rows.map(mapAdminSquare),
-        totals: await getStatusCounts(pool),
+        squares: squares.map(mapAdminSquare),
+        totals: await storage.getStatusCounts(),
       });
     } catch (error) {
       next(error);
@@ -201,15 +145,11 @@ function createApp({ pool, config }) {
 
   app.get("/api/admin/squares.csv", requireAdmin(config), async (req, res, next) => {
     try {
-      const result = await pool.query(`
-        SELECT *
-        FROM squares
-        ORDER BY number ASC;
-      `);
+      const squares = await storage.listAdminSquares(null);
 
       res.setHeader("Content-Type", "text/csv; charset=utf-8");
       res.setHeader("Content-Disposition", "attachment; filename=\"hundred-square-entries.csv\"");
-      res.send(createSquaresCsv(result.rows));
+      res.send(createSquaresCsv(squares));
     } catch (error) {
       next(error);
     }
@@ -223,26 +163,11 @@ function createApp({ pool, config }) {
         throw createHttpError(400, "Choose a valid square from 1 to 100.");
       }
 
-      const result = await pool.query(
-        `
-          UPDATE squares
-          SET status = 'paid',
-              paid_at = NOW(),
-              updated_at = NOW()
-          WHERE number = $1
-            AND status = 'reserved'
-          RETURNING *;
-        `,
-        [number]
-      );
-
-      if (result.rowCount === 0) {
-        throw createHttpError(404, "Only reserved squares can be marked as paid.");
-      }
+      const square = await storage.markSquarePaid(number);
 
       res.json({
-        square: mapAdminSquare(result.rows[0]),
-        totals: await getStatusCounts(pool),
+        square: mapAdminSquare(square),
+        totals: await storage.getStatusCounts(),
       });
     } catch (error) {
       next(error);
@@ -257,30 +182,11 @@ function createApp({ pool, config }) {
         throw createHttpError(400, "Choose a valid square from 1 to 100.");
       }
 
-      const result = await pool.query(
-        `
-          UPDATE squares
-          SET status = 'available',
-              name = NULL,
-              email = NULL,
-              donation_reference = NULL,
-              reserved_at = NULL,
-              paid_at = NULL,
-              updated_at = NOW()
-          WHERE number = $1
-            AND status = 'reserved'
-          RETURNING *;
-        `,
-        [number]
-      );
-
-      if (result.rowCount === 0) {
-        throw createHttpError(404, "Only reserved squares can be released.");
-      }
+      const square = await storage.releaseSquare(number);
 
       res.json({
-        square: mapAdminSquare(result.rows[0]),
-        totals: await getStatusCounts(pool),
+        square: mapAdminSquare(square),
+        totals: await storage.getStatusCounts(),
       });
     } catch (error) {
       next(error);

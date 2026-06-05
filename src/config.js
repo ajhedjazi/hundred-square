@@ -1,5 +1,9 @@
 function getConfig() {
+  const nodeEnv = process.env.NODE_ENV || "development";
+
   return {
+    nodeEnv,
+    isProduction: nodeEnv === "production",
     port: Number(process.env.PORT || 3000),
     databaseUrl: process.env.DATABASE_URL,
     adminPassword: process.env.ADMIN_PASSWORD,
@@ -12,7 +16,7 @@ function getConfig() {
 function validateRuntimeConfig(config) {
   const missing = [];
 
-  if (!config.databaseUrl) {
+  if (config.isProduction && !config.databaseUrl) {
     missing.push("DATABASE_URL");
   }
 

@@ -1,4 +1,5 @@
 const { Pool } = require("pg");
+const { createHttpError } = require("./errors");
 
 function shouldUseSsl() {
   return (
@@ -66,6 +67,133 @@ async function getStatusCounts(pool) {
   };
 }
 
+async function listPublicSquares(pool) {
+  const result = await pool.query(`
+    SELECT number, status
+    FROM squares
+    ORDER BY number ASC;
+  `);
+
+  return result.rows;
+}
+
+async function listAdminSquares(pool, status) {
+  const query = status
+    ? {
+        sql: "SELECT * FROM squares WHERE status = $1 ORDER BY number ASC;",
+        values: [status],
+      }
+    : {
+        sql: "SELECT * FROM squares ORDER BY number ASC;",
+        values: [],
+      };
+
+  const result = await pool.query(query.sql, query.values);
+  return result.rows;
+}
+
+async function reserveSquare(pool, reservation) {
+  const client = await pool.connect();
+  let inTransaction = false;
+
+  try {
+    await client.query("BEGIN");
+    inTransaction = true;
+
+    const existing = await client.query(
+      "SELECT id, number, status FROM squares WHERE number = $1 FOR UPDATE",
+      [reservation.number]
+    );
+
+    if (existing.rowCount === 0) {
+      throw createHttpError(404, "That square does not exist.");
+    }
+
+    if (existing.rows[0].status !== "available") {
+      throw createHttpError(409, "That square has already been reserved. Please choose another one.");
+    }
+
+    const donationReference = `Square ${reservation.number} - ${reservation.name}`;
+    const updated = await client.query(
+      `
+        UPDATE squares
+        SET status = 'reserved',
+            name = $1,
+            email = $2,
+            donation_reference = $3,
+            reserved_at = NOW(),
+            paid_at = NULL,
+            updated_at = NOW()
+        WHERE number = $4
+        RETURNING *;
+      `,
+      [reservation.name, reservation.email, donationReference, reservation.number]
+    );
+
+    await client.query("COMMIT");
+    inTransaction = false;
+
+    return {
+      square: updated.rows[0],
+      donationReference,
+    };
+  } catch (error) {
+    if (inTransaction) {
+      await client.query("ROLLBACK");
+    }
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function markSquarePaid(pool, number) {
+  const result = await pool.query(
+    `
+      UPDATE squares
+      SET status = 'paid',
+          paid_at = NOW(),
+          updated_at = NOW()
+      WHERE number = $1
+        AND status = 'reserved'
+      RETURNING *;
+    `,
+    [number]
+  );
+
+  if (result.rowCount === 0) {
+    throw createHttpError(404, "Only reserved squares can be marked as paid.");
+  }
+
+  return result.rows[0];
+}
+
+async function releaseSquare(pool, number) {
+  const result = await pool.query(
+    `
+      UPDATE squares
+      SET status = 'available',
+          name = NULL,
+          email = NULL,
+          donation_reference = NULL,
+          reserved_at = NULL,
+          paid_at = NULL,
+          updated_at = NOW()
+      WHERE number = $1
+        AND status = 'reserved'
+      RETURNING *;
+    `,
+    [number]
+  );
+
+  if (result.rowCount === 0) {
+    throw createHttpError(404, "Only reserved squares can be released.");
+  }
+
+  return result.rows[0];
+}
+
 function mapPublicSquare(row) {
   return {
     number: row.number,
@@ -88,10 +216,29 @@ function mapAdminSquare(row) {
   };
 }
 
+function createPostgresStore(pool) {
+  return {
+    name: "PostgreSQL",
+    listPublicSquares: () => listPublicSquares(pool),
+    listAdminSquares: (status) => listAdminSquares(pool, status),
+    getStatusCounts: () => getStatusCounts(pool),
+    reserveSquare: (reservation) => reserveSquare(pool, reservation),
+    markSquarePaid: (number) => markSquarePaid(pool, number),
+    releaseSquare: (number) => releaseSquare(pool, number),
+    close: () => pool.end(),
+  };
+}
+
 module.exports = {
   createPool,
+  createPostgresStore,
   getStatusCounts,
   initDatabase,
+  listAdminSquares,
+  listPublicSquares,
   mapAdminSquare,
   mapPublicSquare,
+  markSquarePaid,
+  releaseSquare,
+  reserveSquare,
 };
