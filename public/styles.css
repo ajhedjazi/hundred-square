@@ -442,7 +442,7 @@ select {
 
 table {
   width: 100%;
-  min-width: 920px;
+  min-width: 1040px;
   border-collapse: collapse;
 }
 
@@ -1134,6 +1134,11 @@ body.public-page {
 
 .public-page label {
   color: var(--public-text);
+}
+
+.public-page .optional-label {
+  color: var(--public-muted);
+  font-weight: 700;
 }
 
 .public-page input,

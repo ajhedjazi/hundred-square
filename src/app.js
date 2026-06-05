@@ -7,7 +7,7 @@ const {
   reserveSquares,
 } = require("./db");
 const { createSquaresCsv } = require("./csv");
-const { sendReservationEmail } = require("./email");
+const { sendReservationEmails } = require("./email");
 const { createHttpError } = require("./errors");
 const {
   normalizeStatusFilter,
@@ -100,24 +100,33 @@ function createApp({ store, pool, config }) {
       const reserve = storage.reserveSquares || storage.reserveSquare;
       const { squares, totalAmount } = await reserve(validation.data);
       const numbers = squares.map((square) => square.number);
+      const reservedAt = squares[0] && squares[0].reserved_at;
 
       const message = `Your square${numbers.length === 1 ? " has" : "s have"} been reserved. Please now donate \u00a3${totalAmount} using the button below. Only paid squares will be entered into the draw.`;
+      let emailResult = {
+        supporterEmailSent: false,
+        adminEmailSent: false,
+      };
 
       try {
-        await sendReservationEmail(config, {
+        emailResult = await sendReservationEmails(config, {
           name: validation.data.name,
           email: validation.data.email,
+          phone: validation.data.phone,
           numbers,
           totalAmount,
+          reservedAt,
           fundraiserUrl: config.fundraiserUrl,
         });
       } catch (emailError) {
-        console.error("Reservation email failed:", emailError.message);
+        console.error("Reservation email flow failed:", emailError.message);
       }
 
       res.status(201).json({
         message,
         fundraiserUrl: config.fundraiserUrl,
+        supporterEmailSent: emailResult.supporterEmailSent,
+        adminEmailSent: emailResult.adminEmailSent,
         numbers,
         totalAmount,
         squares: squares.map(mapPublicSquare),

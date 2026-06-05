@@ -312,6 +312,7 @@
           numbers,
           name: getFieldValue("name"),
           email: getFieldValue("email"),
+          phone: getFieldValue("phone"),
           confirmed: Boolean(getFieldValue("confirmed")),
         }),
       });

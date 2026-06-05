@@ -139,6 +139,7 @@
       row.appendChild(createStatusCell(square.status));
       row.appendChild(createCell(square.name));
       row.appendChild(createCell(square.email));
+      row.appendChild(createCell(square.phone));
       row.appendChild(createCell(formatDate(square.reservedAt)));
       row.appendChild(createCell(formatDate(square.paidAt)));
       row.appendChild(createActionsCell(square));
@@ -148,7 +149,7 @@
     if (squares.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
-      cell.colSpan = 7;
+      cell.colSpan = 8;
       cell.textContent = "No squares match this filter.";
       row.appendChild(cell);
       tableBody.appendChild(row);

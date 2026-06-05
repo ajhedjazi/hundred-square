@@ -43,7 +43,7 @@ The admin page is available at `http://localhost:3000/admin`.
 
 ## Email
 
-If `RESEND_API_KEY` and `FROM_EMAIL` are present, reservation emails are sent through Resend. If either value is missing, the app still works and logs the email content to the server console.
+If `RESEND_API_KEY` and `FROM_EMAIL` are present, reservation emails are sent through Resend from the server. Supporters receive a short confirmation email. If `ADMIN_NOTIFY_EMAIL` is also present, the organiser receives a detailed reservation email with the supporter details, selected squares, expected donation, and payment status reminder. If email is not configured or sending fails, the reservation still saves.
 
 ## Render Deployment
 
@@ -74,6 +74,7 @@ If `RESEND_API_KEY` and `FROM_EMAIL` are present, reservation emails are sent th
    ```bash
    RESEND_API_KEY=<your Resend API key>
    FROM_EMAIL=<verified sender email>
+   ADMIN_NOTIFY_EMAIL=<organiser notification email>
    ```
 
 On first startup, the app creates the `squares` table if needed and seeds square records 1-100 without overwriting existing rows.

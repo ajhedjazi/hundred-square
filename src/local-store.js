@@ -15,6 +15,7 @@ function createEmptySquare(number, timestamp) {
     status: "available",
     name: null,
     email: null,
+    phone: null,
     donation_reference: null,
     reserved_at: null,
     paid_at: null,
@@ -61,6 +62,7 @@ function normalizeData(parsed) {
         status,
         name: existing.name || null,
         email: existing.email || null,
+        phone: existing.phone || null,
         donation_reference: existing.donation_reference || null,
         reserved_at: existing.reserved_at || null,
         paid_at: existing.paid_at || null,
@@ -150,6 +152,7 @@ async function createLocalFileStore(filePath) {
       square.status = "reserved";
       square.name = reservation.name;
       square.email = reservation.email;
+      square.phone = reservation.phone || null;
       square.donation_reference = null;
       square.reserved_at = timestamp;
       square.paid_at = null;
@@ -230,6 +233,7 @@ async function createLocalFileStore(filePath) {
         square.status = "available";
         square.name = null;
         square.email = null;
+        square.phone = null;
         square.donation_reference = null;
         square.reserved_at = null;
         square.paid_at = null;

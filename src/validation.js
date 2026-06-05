@@ -6,6 +6,12 @@ function sanitizeName(value) {
     .replace(/\s+/g, " ");
 }
 
+function sanitizePhone(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
 function validateSquareNumber(value) {
   const number = Number(value);
 
@@ -50,6 +56,7 @@ function validateReservationPayload(body) {
   const numbers = normalizeSquareNumbers(body);
   const name = sanitizeName(body && body.name);
   const email = String((body && body.email) || "").trim().toLowerCase();
+  const phone = sanitizePhone(body && body.phone);
   const confirmed = Boolean(body && body.confirmed);
 
   if (numbers.length === 0) {
@@ -68,6 +75,10 @@ function validateReservationPayload(body) {
     errors.push("Enter a valid email address.");
   }
 
+  if (phone.length > 40) {
+    errors.push("Phone must be 40 characters or fewer.");
+  }
+
   if (!confirmed) {
     errors.push("Confirm the fundraiser eligibility and Gift Aid statement before reserving.");
   }
@@ -80,6 +91,7 @@ function validateReservationPayload(body) {
       numbers,
       name,
       email,
+      phone: phone || null,
       confirmed,
     },
   };
@@ -100,6 +112,7 @@ module.exports = {
   normalizeStatusFilter,
   normalizeSquareNumbers,
   sanitizeName,
+  sanitizePhone,
   validateReservationPayload,
   validateSquareNumber,
 };

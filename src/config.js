@@ -10,6 +10,7 @@ function getConfig() {
     fundraiserUrl: process.env.FUNDRAISER_URL,
     resendApiKey: process.env.RESEND_API_KEY,
     fromEmail: process.env.FROM_EMAIL,
+    adminNotifyEmail: process.env.ADMIN_NOTIFY_EMAIL,
   };
 }
 

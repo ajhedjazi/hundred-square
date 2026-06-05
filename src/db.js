@@ -24,12 +24,18 @@ async function initDatabase(pool) {
       status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'reserved', 'paid')),
       name TEXT,
       email TEXT,
+      phone TEXT,
       donation_reference TEXT,
       reserved_at TIMESTAMPTZ,
       paid_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE squares
+    ADD COLUMN IF NOT EXISTS phone TEXT;
   `);
 
   await pool.query(`
@@ -124,14 +130,15 @@ async function reserveSquares(pool, reservation) {
         SET status = 'reserved',
             name = $1,
             email = $2,
+            phone = $3,
             donation_reference = NULL,
             reserved_at = NOW(),
             paid_at = NULL,
             updated_at = NOW()
-        WHERE number = ANY($3::int[])
+        WHERE number = ANY($4::int[])
         RETURNING *;
       `,
-      [reservation.name, reservation.email, numbers]
+      [reservation.name, reservation.email, reservation.phone || null, numbers]
     );
 
     await client.query("COMMIT");
@@ -192,6 +199,7 @@ async function releaseSquare(pool, number) {
       SET status = 'available',
           name = NULL,
           email = NULL,
+          phone = NULL,
           donation_reference = NULL,
           reserved_at = NULL,
           paid_at = NULL,
@@ -224,6 +232,7 @@ function mapAdminSquare(row) {
     status: row.status,
     name: row.name,
     email: row.email,
+    phone: row.phone,
     donationReference: row.donation_reference,
     reservedAt: row.reserved_at,
     paidAt: row.paid_at,
