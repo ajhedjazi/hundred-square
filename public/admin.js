@@ -6,6 +6,7 @@
   const adminLoginError = document.getElementById("adminLoginError");
   const statusFilter = document.getElementById("statusFilter");
   const refreshButton = document.getElementById("refreshButton");
+  const exportCsvButton = document.getElementById("exportCsvButton");
   const logoutButton = document.getElementById("logoutButton");
   const adminMessage = document.getElementById("adminMessage");
   const tableBody = document.getElementById("adminTableBody");
@@ -58,6 +59,26 @@
     }
 
     return data;
+  }
+
+  async function adminBlobFetch(url) {
+    const response = await fetch(url, {
+      headers: {
+        "X-Admin-Password": adminPassword,
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        sessionStorage.removeItem("adminPassword");
+        setLoggedIn(false);
+      }
+
+      const data = await response.json();
+      throw new Error(data.error || "Admin export failed.");
+    }
+
+    return response.blob();
   }
 
   function renderTotals(totals) {
@@ -168,6 +189,28 @@
     }
   }
 
+  async function exportCsv() {
+    setMessage("Preparing CSV...");
+    exportCsvButton.disabled = true;
+
+    try {
+      const blob = await adminBlobFetch("/api/admin/squares.csv");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "hundred-square-entries.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setMessage("");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      exportCsvButton.disabled = false;
+    }
+  }
+
   adminLoginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     adminLoginError.textContent = "";
@@ -178,6 +221,7 @@
 
   statusFilter.addEventListener("change", loadAdminSquares);
   refreshButton.addEventListener("click", loadAdminSquares);
+  exportCsvButton.addEventListener("click", exportCsv);
   logoutButton.addEventListener("click", () => {
     sessionStorage.removeItem("adminPassword");
     adminPassword = "";

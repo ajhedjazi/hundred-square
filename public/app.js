@@ -19,7 +19,7 @@
   }
 
   function renderTotals(totals) {
-    publicTotals.textContent = `${totals.available} available · ${totals.reserved} reserved · ${totals.paid} paid`;
+    publicTotals.textContent = `${totals.available} available | ${totals.reserved} reserved | ${totals.paid} paid`;
   }
 
   function openReservationForm(number) {

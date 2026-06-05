@@ -5,6 +5,7 @@ const {
   mapAdminSquare,
   mapPublicSquare,
 } = require("./db");
+const { createSquaresCsv } = require("./csv");
 const { sendReservationEmail } = require("./email");
 const {
   normalizeStatusFilter,
@@ -186,6 +187,22 @@ function createApp({ pool, config }) {
         squares: result.rows.map(mapAdminSquare),
         totals: await getStatusCounts(pool),
       });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/admin/squares.csv", requireAdmin(config), async (req, res, next) => {
+    try {
+      const result = await pool.query(`
+        SELECT *
+        FROM squares
+        ORDER BY number ASC;
+      `);
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", "attachment; filename=\"hundred-square-entries.csv\"");
+      res.send(createSquaresCsv(result.rows));
     } catch (error) {
       next(error);
     }

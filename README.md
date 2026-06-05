@@ -10,6 +10,7 @@ A small full-stack Node.js and Express app for running a charity 100-square fund
 - Automatic table creation and first-start seed for all 100 squares.
 - Admin page at `/admin` protected by `ADMIN_PASSWORD`.
 - Admin filters, totals, mark-as-paid, and release actions.
+- CSV export for all square entries from the admin page.
 - Optional Resend email support, with console logging fallback.
 
 ## Local Setup

@@ -4,6 +4,7 @@ const path = require("path");
 const requiredFiles = [
   "src/server.js",
   "src/app.js",
+  "src/csv.js",
   "src/db.js",
   "src/email.js",
   "public/index.html",
