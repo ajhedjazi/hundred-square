@@ -20,7 +20,7 @@
               <span hidden>ANDY'S MAN CLUB</span>
             </div>
           </div>
-          <p class="lede">Choose your square, reserve it online, and donate &pound;5 per square to support Andy's Man Club. Only paid squares will be entered into the draw.</p>
+          <p class="lede">Choose one or more squares, reserve them online, then donate through the official fundraiser link.</p>
           <div class="hero-summary" aria-label="Fundraiser summary">
             <span>100 squares</span>
             <span>&pound;5 each</span>
@@ -31,41 +31,49 @@
       </section>
 
       <div class="public-content">
-        <section class="notice" aria-label="Fundraiser information">
-          <p>Squares are reserved first and manually confirmed after donation. Only paid squares are entered into the draw. Please do not claim Gift Aid if your donation is for a prize square/raffle entry.</p>
-        </section>
-
-        <section class="rules-card" aria-labelledby="rulesTitle">
-          <div>
+        <section class="rules-section" aria-labelledby="rulesTitle">
+          <div class="section-heading">
             <p class="section-kicker">Important information</p>
             <h2 id="rulesTitle">Fundraiser rules</h2>
+            <p>Reserve your square(s), donate the correct amount, and I will confirm paid entries manually.</p>
           </div>
-          <ul class="rules-list">
-            <li>Each square costs &pound;5.</li>
-            <li>Prize: &pound;200 to the winning paid square.</li>
-            <li>You can choose one or more available squares.</li>
-            <li>After reserving, please donate the correct amount using the official fundraiser button.</li>
-            <li>Your square(s) are reserved first, but only entered into the draw once payment is confirmed.</li>
-            <li>Reserved squares are held for 24 hours pending payment.</li>
-            <li>Unpaid reserved squares may be released and made available again.</li>
-            <li>Winner will be chosen at random from paid squares only.</li>
-            <li>Minimum age to enter: 16+.</li>
-            <li>Please only enter if you are based in the UK.</li>
-            <li>Please do not claim Gift Aid if your donation is for a prize square/raffle entry.</li>
-            <li>The winner will be contacted using the details provided.</li>
-            <li>The winner's name will only be shared publicly with permission.</li>
-            <li>If all squares do not sell, the organiser may still proceed with the draw using paid entries only or extend the fundraiser.</li>
-            <li>Draw date/time to be confirmed by the organiser.</li>
-          </ul>
-        </section>
 
-        <section class="toolbar" aria-label="Square status key">
-          <div class="legend">
-            <span><i class="key available"></i> Available</span>
-            <span><i class="key reserved"></i> Reserved</span>
-            <span><i class="key paid"></i> Paid</span>
+          <div class="rules-grid">
+            <div>
+              <strong>&pound;5 per square</strong>
+              <span>Choose one or more available squares.</span>
+            </div>
+            <div>
+              <strong>&pound;200 prize</strong>
+              <span>Winner chosen from paid squares only.</span>
+            </div>
+            <div>
+              <strong>Paid entries only</strong>
+              <span>Reserved squares are held for 24 hours pending payment.</span>
+            </div>
+            <div>
+              <strong>16+ and UK only</strong>
+              <span>Please enter only if you meet both requirements.</span>
+            </div>
+            <div>
+              <strong>No Gift Aid</strong>
+              <span>Do not claim Gift Aid for prize-square/raffle entries.</span>
+            </div>
+            <div>
+              <strong>Draw timing</strong>
+              <span>Date and time will be confirmed by the organiser.</span>
+            </div>
           </div>
-          <p id="publicTotals" class="totals" aria-live="polite"></p>
+
+          <details class="rules-details">
+            <summary>More draw details</summary>
+            <ul>
+              <li>Unpaid reserved squares may be released and made available again.</li>
+              <li>The winner will be contacted using the details provided.</li>
+              <li>The winner's name will only be shared publicly with permission.</li>
+              <li>If all squares do not sell, the organiser may still proceed with paid entries only or extend the fundraiser.</li>
+            </ul>
+          </details>
         </section>
 
         <section id="gridPanel" class="grid-panel" aria-labelledby="gridTitle">
@@ -73,7 +81,15 @@
             <div>
               <p class="section-kicker">100-square board</p>
               <h2 id="gridTitle">Pick a number from 1 to 100</h2>
-              <p>Select one or more available squares. Reserved and paid squares are locked while donations are checked.</p>
+              <p>Select one or more available squares.</p>
+            </div>
+            <div class="board-status">
+              <div class="legend" aria-label="Square status key">
+                <span><i class="key available"></i> Available</span>
+                <span><i class="key reserved"></i> Reserved</span>
+                <span><i class="key paid"></i> Paid</span>
+              </div>
+              <p id="publicTotals" class="totals" aria-live="polite"></p>
             </div>
           </div>
           <div class="selection-panel" aria-live="polite">
