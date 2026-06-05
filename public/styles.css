@@ -1,14 +1,15 @@
 :root {
-  --bg: #f7f7f3;
-  --text: #20231f;
-  --muted: #62675f;
-  --line: #d9ddd2;
+  --bg: #f4f6f1;
+  --text: #172018;
+  --muted: #596157;
+  --line: #d4dacd;
   --surface: #ffffff;
   --available: #2f7d46;
   --reserved: #c27a1a;
   --paid: #365f91;
   --danger: #a3332b;
   --focus: #111111;
+  --shadow: 0 18px 44px rgba(23, 32, 24, 0.1);
 }
 
 * {
@@ -21,6 +22,13 @@ body {
   color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.5;
+}
+
+body::before {
+  content: "";
+  display: block;
+  height: 10px;
+  background: linear-gradient(90deg, var(--available), var(--reserved), var(--paid));
 }
 
 button,
@@ -44,7 +52,9 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 22px;
 }
 
 .eyebrow {
@@ -65,6 +75,7 @@ h1 {
   margin-bottom: 10px;
   font-size: clamp(2rem, 6vw, 3.5rem);
   line-height: 1;
+  letter-spacing: 0;
 }
 
 h2 {
@@ -122,6 +133,7 @@ select:focus-visible {
   border-left: 5px solid var(--reserved);
   background: #fff7ea;
   padding: 14px 16px;
+  box-shadow: 0 1px 0 rgba(23, 32, 24, 0.04);
 }
 
 .notice p {
@@ -182,10 +194,35 @@ select:focus-visible {
   min-height: 26px;
 }
 
+.grid-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.grid-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.grid-panel-header h2 {
+  margin-bottom: 4px;
+}
+
+.grid-panel-header p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .square-grid {
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 6px;
+  gap: 8px;
 }
 
 .square {
@@ -195,12 +232,15 @@ select:focus-visible {
   border-radius: 8px;
   background: var(--surface);
   color: var(--text);
+  font-size: clamp(0.78rem, 2.4vw, 1rem);
   font-weight: 800;
   cursor: pointer;
+  transition: box-shadow 140ms ease, transform 140ms ease, border-color 140ms ease;
 }
 
 .square.available {
   border-color: rgba(47, 125, 70, 0.45);
+  background: #f7fff8;
 }
 
 .square.reserved,
@@ -218,9 +258,17 @@ select:focus-visible {
   background: var(--paid);
 }
 
+.square.loading {
+  border-color: var(--line);
+  background: #f0f2eb;
+  color: var(--muted);
+  cursor: wait;
+}
+
 .square:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(32, 35, 31, 0.12);
+  border-color: var(--available);
 }
 
 .success-panel,
@@ -234,6 +282,7 @@ select:focus-visible {
 .success-panel {
   margin-top: 24px;
   padding: 20px;
+  box-shadow: var(--shadow);
 }
 
 .success-panel p {
@@ -449,7 +498,6 @@ tr:last-child td {
 
   .square {
     border-radius: 6px;
-    font-size: 0.8rem;
   }
 
   .admin-summary {
@@ -460,9 +508,5 @@ tr:last-child td {
 @media (max-width: 420px) {
   .admin-summary {
     grid-template-columns: 1fr;
-  }
-
-  .square {
-    font-size: 0.72rem;
   }
 }

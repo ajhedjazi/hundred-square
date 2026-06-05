@@ -1,18 +1,68 @@
 (function () {
-  const grid = document.getElementById("squareGrid");
-  const statusMessage = document.getElementById("statusMessage");
-  const publicTotals = document.getElementById("publicTotals");
-  const dialog = document.getElementById("reservationDialog");
-  const form = document.getElementById("reservationForm");
-  const closeDialogButton = document.getElementById("closeDialogButton");
-  const selectedSquareLabel = document.getElementById("selectedSquareLabel");
-  const formError = document.getElementById("formError");
-  const successPanel = document.getElementById("successPanel");
-  const successMessage = document.getElementById("successMessage");
-  const successReference = document.getElementById("successReference");
-  const fundraiserButton = document.getElementById("fundraiserButton");
+  const requiredIds = {
+    grid: "squareGrid",
+    statusMessage: "statusMessage",
+    publicTotals: "publicTotals",
+    dialog: "reservationDialog",
+    form: "reservationForm",
+    closeDialogButton: "closeDialogButton",
+    selectedSquareLabel: "selectedSquareLabel",
+    formError: "formError",
+    successPanel: "successPanel",
+    successMessage: "successMessage",
+    successReference: "successReference",
+    fundraiserButton: "fundraiserButton",
+    nameInput: "name",
+  };
+
+  function getRequiredElements(ids) {
+    const elements = {};
+    const missing = [];
+
+    for (const [key, id] of Object.entries(ids)) {
+      const element = document.getElementById(id);
+
+      if (!element) {
+        missing.push(`#${id}`);
+      }
+
+      elements[key] = element;
+    }
+
+    if (missing.length > 0) {
+      console.error("Fundraiser page could not initialise. Missing elements:", missing.join(", "));
+      return null;
+    }
+
+    return elements;
+  }
+
+  const elements = getRequiredElements(requiredIds);
+
+  if (!elements) {
+    return;
+  }
+
+  const {
+    grid,
+    statusMessage,
+    publicTotals,
+    dialog,
+    form,
+    closeDialogButton,
+    selectedSquareLabel,
+    formError,
+    successPanel,
+    successMessage,
+    successReference,
+    fundraiserButton,
+    nameInput,
+  } = elements;
 
   let selectedSquare = null;
+
+  successPanel.hidden = true;
+  successPanel.classList.add("hidden");
 
   function setStatus(message) {
     statusMessage.textContent = message || "";
@@ -34,32 +84,57 @@
       dialog.setAttribute("open", "");
     }
 
-    document.getElementById("name").focus();
+    nameInput.focus();
   }
 
   function closeReservationForm() {
     selectedSquare = null;
-    dialog.close();
+
+    if (typeof dialog.close === "function" && dialog.open) {
+      dialog.close();
+    } else {
+      dialog.removeAttribute("open");
+    }
   }
 
   function renderSquares(squares) {
+    if (!Array.isArray(squares)) {
+      console.error("Fundraiser square data was not an array:", squares);
+      setStatus("Could not show the square grid.");
+      return;
+    }
+
+    if (squares.length !== 100) {
+      console.error(`Expected 100 squares, received ${squares.length}.`, squares);
+    }
+
     grid.innerHTML = "";
 
     for (const square of squares) {
+      const status = square.status || "available";
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `square ${square.status}`;
+      button.className = `square ${status}`;
       button.textContent = square.number;
-      button.disabled = square.status !== "available";
+      button.disabled = status !== "available";
       button.setAttribute("role", "gridcell");
-      button.setAttribute("aria-label", `Square ${square.number}, ${square.status}`);
+      button.setAttribute("aria-label", `Square ${square.number}, ${status}`);
 
-      if (square.status === "available") {
+      if (status === "available") {
         button.addEventListener("click", () => openReservationForm(square.number));
       }
 
       grid.appendChild(button);
     }
+  }
+
+  function renderLoadingSquares() {
+    const squares = Array.from({ length: 100 }, (_, index) => ({
+      number: index + 1,
+      status: "loading",
+    }));
+
+    renderSquares(squares);
   }
 
   async function loadSquares() {
@@ -86,6 +161,7 @@
   }
 
   function showSuccess(data) {
+    successPanel.hidden = false;
     successPanel.classList.remove("hidden");
     successMessage.textContent = data.message;
     successReference.textContent = `Donation reference: ${data.donationReference}`;
@@ -96,6 +172,11 @@
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     formError.textContent = "";
+
+    if (!selectedSquare) {
+      formError.textContent = "Choose a square before submitting the form.";
+      return;
+    }
 
     const submitButton = form.querySelector('button[type="submit"]');
     submitButton.disabled = true;
@@ -135,5 +216,6 @@
 
   closeDialogButton.addEventListener("click", closeReservationForm);
 
+  renderLoadingSquares();
   loadSquares();
 })();

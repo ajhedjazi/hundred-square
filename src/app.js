@@ -96,14 +96,21 @@ async function reserveSquare(pool, reservation) {
 
 function createApp({ pool, config }) {
   const app = express();
-  const publicDir = path.join(__dirname, "..", "public");
+  const publicDir = path.resolve(__dirname, "..", "public");
 
   app.use(express.json({ limit: "32kb" }));
+
+  app.get("/", (req, res) => {
+    res.sendFile(path.join(publicDir, "index.html"));
+  });
+
   app.use(express.static(publicDir));
 
   app.get("/admin", (req, res) => {
     res.sendFile(path.join(publicDir, "admin.html"));
   });
+
+  app.use("/admin", express.static(publicDir, { index: false }));
 
   app.get("/api/config", (req, res) => {
     res.json({
