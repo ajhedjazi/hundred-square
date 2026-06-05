@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Andy's Man Club 100-Square Fundraiser</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="intro">
+        <div>
+          <p class="eyebrow">Charity 100-square fundraiser</p>
+          <h1>Choose your square</h1>
+          <p class="lede">Pick an available number, reserve it with your details, then donate &pound;5 through the official fundraiser page.</p>
+        </div>
+        <a class="secondary-link" href="/admin">Admin</a>
+      </section>
+
+      <section class="notice" aria-label="Fundraiser information">
+        <p>This fundraiser uses an official donation page. Squares are reserved first and manually confirmed after donation. Please do not claim Gift Aid if your donation is for a prize square/raffle entry.</p>
+      </section>
+
+      <section class="toolbar" aria-label="Square status key">
+        <div class="legend">
+          <span><i class="key available"></i> Available</span>
+          <span><i class="key reserved"></i> Reserved</span>
+          <span><i class="key paid"></i> Paid</span>
+        </div>
+        <p id="publicTotals" class="totals" aria-live="polite"></p>
+      </section>
+
+      <section>
+        <div id="statusMessage" class="status-message" aria-live="polite"></div>
+        <div id="squareGrid" class="square-grid" role="grid" aria-label="100 fundraiser squares"></div>
+      </section>
+
+      <section id="successPanel" class="success-panel hidden" aria-live="polite">
+        <h2>Reservation received</h2>
+        <p id="successMessage"></p>
+        <p class="reference" id="successReference"></p>
+        <a id="fundraiserButton" class="primary-button" href="#" target="_blank" rel="noopener">Donate using official fundraiser link</a>
+      </section>
+    </main>
+
+    <dialog id="reservationDialog" class="reservation-dialog">
+      <form id="reservationForm" class="reservation-form">
+        <div class="dialog-header">
+          <h2>Reserve square <span id="selectedSquareLabel"></span></h2>
+          <button class="icon-button" type="button" id="closeDialogButton" aria-label="Close reservation form">x</button>
+        </div>
+
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" required maxlength="100">
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+
+        <label class="checkbox-row">
+          <input id="confirmed" name="confirmed" type="checkbox" required>
+          <span>I understand my square is only confirmed once my &pound;5 donation has been received.</span>
+        </label>
+
+        <p id="formError" class="form-error" aria-live="polite"></p>
+
+        <button class="primary-button" type="submit">Reserve square</button>
+      </form>
+    </dialog>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

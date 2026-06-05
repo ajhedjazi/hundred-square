@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin - 100-Square Fundraiser</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="page-shell admin-shell">
+      <section class="intro">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h1>Manage squares</h1>
+          <p class="lede">Review reservations, confirm paid squares, and release reservations if needed.</p>
+        </div>
+        <a class="secondary-link" href="/">Public page</a>
+      </section>
+
+      <section id="loginPanel" class="admin-login">
+        <form id="adminLoginForm" class="reservation-form">
+          <div class="field">
+            <label for="adminPassword">Admin password</label>
+            <input id="adminPassword" name="adminPassword" type="password" autocomplete="current-password" required>
+          </div>
+          <button class="primary-button" type="submit">Open admin</button>
+          <p id="adminLoginError" class="form-error" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="adminContent" class="hidden">
+        <div class="admin-summary" aria-live="polite">
+          <div>
+            <span class="summary-label">Available</span>
+            <strong id="availableCount">0</strong>
+          </div>
+          <div>
+            <span class="summary-label">Reserved</span>
+            <strong id="reservedCount">0</strong>
+          </div>
+          <div>
+            <span class="summary-label">Paid</span>
+            <strong id="paidCount">0</strong>
+          </div>
+          <div>
+            <span class="summary-label">Estimated raised</span>
+            <strong id="estimatedRaised">&pound;0</strong>
+          </div>
+        </div>
+
+        <div class="admin-tools">
+          <div class="field compact-field">
+            <label for="statusFilter">Filter</label>
+            <select id="statusFilter" name="statusFilter">
+              <option value="">All</option>
+              <option value="available">Available</option>
+              <option value="reserved">Reserved</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+          <button id="refreshButton" class="secondary-button" type="button">Refresh</button>
+          <button id="logoutButton" class="secondary-button" type="button">Log out</button>
+        </div>
+
+        <p id="adminMessage" class="status-message" aria-live="polite"></p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Square</th>
+                <th>Status</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Reference</th>
+                <th>Reserved</th>
+                <th>Paid</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/admin.js" defer></script>
+  </body>
+</html>
