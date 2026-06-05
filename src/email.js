@@ -29,6 +29,37 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function extractEmailAddress(value) {
+  const text = String(value || "").trim();
+  const match = text.match(/<([^>]+)>/);
+  return (match ? match[1] : text).trim().toLowerCase();
+}
+
+function isResendTestSender(fromEmail) {
+  return extractEmailAddress(fromEmail) === "onboarding@resend.dev";
+}
+
+function emailsMatch(first, second) {
+  return extractEmailAddress(first) === extractEmailAddress(second);
+}
+
+function canSendSupporterEmail(config, supporterEmail) {
+  if (!isResendTestSender(config.fromEmail)) {
+    return true;
+  }
+
+  return Boolean(config.adminNotifyEmail && emailsMatch(supporterEmail, config.adminNotifyEmail));
+}
+
+function warn(logger, message) {
+  if (typeof logger.warn === "function") {
+    logger.warn(message);
+    return;
+  }
+
+  logger.log(message);
+}
+
 function buildDetailRows(rows) {
   return rows
     .map(([label, value]) => {
@@ -192,26 +223,33 @@ async function sendReservationEmails(config, reservation, options = {}) {
     fundraiserUrl: reservation.fundraiserUrl || config.fundraiserUrl,
   };
 
+  if (!config.adminNotifyEmail) {
+    logger.log("Admin reservation email not sent because ADMIN_NOTIFY_EMAIL is not configured.");
+  } else {
+    result.adminEmailSent = await sendOneEmail({
+      label: "Admin",
+      config,
+      message: buildAdminReservationEmail({
+        ...baseReservation,
+        adminNotifyEmail: config.adminNotifyEmail,
+      }),
+      fetchImpl,
+      logger,
+    });
+  }
+
+  if (!canSendSupporterEmail(config, baseReservation.email)) {
+    warn(
+      logger,
+      "Supporter reservation email not sent because FROM_EMAIL uses Resend's onboarding@resend.dev test sender. Resend test emails only deliver to the Resend account email address; verify a custom domain before sending supporter confirmations."
+    );
+    return result;
+  }
+
   result.supporterEmailSent = await sendOneEmail({
     label: "Supporter",
     config,
     message: buildSupporterReservationEmail(baseReservation),
-    fetchImpl,
-    logger,
-  });
-
-  if (!config.adminNotifyEmail) {
-    logger.log("Admin reservation email not sent because ADMIN_NOTIFY_EMAIL is not configured.");
-    return result;
-  }
-
-  result.adminEmailSent = await sendOneEmail({
-    label: "Admin",
-    config,
-    message: buildAdminReservationEmail({
-      ...baseReservation,
-      adminNotifyEmail: config.adminNotifyEmail,
-    }),
     fetchImpl,
     logger,
   });
@@ -222,8 +260,11 @@ async function sendReservationEmails(config, reservation, options = {}) {
 module.exports = {
   buildAdminReservationEmail,
   buildSupporterReservationEmail,
+  canSendSupporterEmail,
   escapeHtml,
+  extractEmailAddress,
   formatReservedAt,
   formatSquares,
+  isResendTestSender,
   sendReservationEmails,
 };

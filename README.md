@@ -43,7 +43,16 @@ The admin page is available at `http://localhost:3000/admin`.
 
 ## Email
 
-If `RESEND_API_KEY` and `FROM_EMAIL` are present, reservation emails are sent through Resend from the server. Supporters receive a short confirmation email. If `ADMIN_NOTIFY_EMAIL` is also present, the organiser receives a detailed reservation email with the supporter details, selected squares, expected donation, and payment status reminder. If email is not configured or sending fails, the reservation still saves.
+If `RESEND_API_KEY` and `FROM_EMAIL` are present, reservation emails are sent through Resend from the server. If `ADMIN_NOTIFY_EMAIL` is also present, the organiser receives a detailed reservation email with the supporter details, selected squares, expected donation, and payment status reminder. If email is not configured or sending fails, the reservation still saves.
+
+You can test admin notification emails before verifying a custom domain by using Resend's test sender:
+
+```bash
+FROM_EMAIL=Amir Fundraiser <onboarding@resend.dev>
+ADMIN_NOTIFY_EMAIL=<your Resend account email address>
+```
+
+Resend's `onboarding@resend.dev` sender only delivers to the email address on the Resend account. While that sender is in use, supporter confirmation emails to other addresses are skipped with a clear server warning. To send supporter confirmation emails later, verify a custom domain in Resend and update `FROM_EMAIL` to a verified sender on that domain.
 
 ## Netlify Deployment
 
@@ -68,10 +77,12 @@ The repository includes `netlify.toml` with the required static publish and func
    ADMIN_PASSWORD=<a strong private admin password>
    FUNDRAISER_URL=https://bit.ly/amir-gnr-amc
    NODE_ENV=production
-   ADMIN_NOTIFY_EMAIL=<organiser notification email>
+   ADMIN_NOTIFY_EMAIL=<your Resend account email address for test sending>
    RESEND_API_KEY=<your Resend API key>
-   FROM_EMAIL=<verified Resend sender email>
+   FROM_EMAIL=Amir Fundraiser <onboarding@resend.dev>
    ```
+
+After verifying a custom sending domain in Resend, update `FROM_EMAIL` to your verified sender address. Supporter confirmation emails require that verified sender/domain.
 
 5. Deploy the site. The public files are served statically from `public`, and `/api/*` requests are routed to `netlify/functions/api.js`.
 

@@ -152,3 +152,53 @@ test("reservation still saves if email delivery fails", async (t) => {
     await close(server);
   }
 });
+
+test("reservation sends admin email and skips supporter email with Resend onboarding sender", async (t) => {
+  const requests = [];
+  t.mock.method(global, "fetch", async (url, options) => {
+    requests.push({
+      url,
+      body: JSON.parse(options.body),
+    });
+
+    return {
+      ok: true,
+      text: async () => "",
+    };
+  });
+  t.mock.method(console, "warn", () => {});
+
+  const app = createApp({
+    store: createReservationStore([9]),
+    config: {
+      adminPassword: "test-password",
+      fundraiserUrl: "https://bit.ly/amir-gnr-amc",
+      resendApiKey: "test-key",
+      fromEmail: "Amir Fundraiser <onboarding@resend.dev>",
+      adminNotifyEmail: "amir@example.com",
+    },
+  });
+  const server = await listen(app);
+
+  try {
+    const port = server.address().port;
+    const response = await postJson(port, "/api/reservations", {
+      numbers: [9],
+      name: "Supporter",
+      email: "supporter@example.com",
+      phone: "07123 456789",
+      confirmed: true,
+    });
+    const data = response.body;
+
+    assert.equal(response.status, 201);
+    assert.equal(data.adminEmailSent, true);
+    assert.equal(data.supporterEmailSent, false);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].body.to[0], "amir@example.com");
+    assert.equal(requests[0].body.reply_to, "supporter@example.com");
+    assert.equal(requests[0].body.subject, "New square reservation: Supporter - Square(s) 9");
+  } finally {
+    await close(server);
+  }
+});

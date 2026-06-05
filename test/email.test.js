@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const {
   buildAdminReservationEmail,
   buildSupporterReservationEmail,
+  canSendSupporterEmail,
   sendReservationEmails,
 } = require("../src/email");
 
@@ -84,11 +85,11 @@ test("sendReservationEmails sends supporter and admin emails separately", async 
     adminEmailSent: true,
   });
   assert.equal(requests.length, 2);
-  assert.equal(requests[0].body.to[0], "amir@example.com");
-  assert.equal(requests[0].body.subject, "Your square reservation");
-  assert.equal(requests[1].body.to[0], "admin@example.com");
-  assert.equal(requests[1].body.reply_to, "amir@example.com");
-  assert.equal(requests[1].body.subject, "New square reservation: Amir - Square(s) 3, 8");
+  assert.equal(requests[0].body.to[0], "admin@example.com");
+  assert.equal(requests[0].body.reply_to, "amir@example.com");
+  assert.equal(requests[0].body.subject, "New square reservation: Amir - Square(s) 3, 8");
+  assert.equal(requests[1].body.to[0], "amir@example.com");
+  assert.equal(requests[1].body.subject, "Your square reservation");
 });
 
 test("sendReservationEmails returns false flags when delivery fails", async () => {
@@ -112,8 +113,8 @@ test("sendReservationEmails returns false flags when delivery fails", async () =
     adminEmailSent: false,
   });
   assert.equal(errors.length, 2);
-  assert.match(errors[0], /Supporter reservation email failed/);
-  assert.match(errors[1], /Admin reservation email failed/);
+  assert.match(errors[0], /Admin reservation email failed/);
+  assert.match(errors[1], /Supporter reservation email failed/);
 });
 
 test("sendReservationEmails skips admin email if ADMIN_NOTIFY_EMAIL is missing", async () => {
@@ -140,4 +141,62 @@ test("sendReservationEmails skips admin email if ADMIN_NOTIFY_EMAIL is missing",
   });
   assert.equal(requestCount, 1);
   assert.match(messages.join("\n"), /ADMIN_NOTIFY_EMAIL/);
+});
+
+test("supporter email is skipped for Resend onboarding sender unless recipient is admin inbox", () => {
+  assert.equal(canSendSupporterEmail({
+    fromEmail: "Amir Fundraiser <onboarding@resend.dev>",
+    adminNotifyEmail: "amir@example.com",
+  }, "supporter@example.com"), false);
+
+  assert.equal(canSendSupporterEmail({
+    fromEmail: "Amir Fundraiser <onboarding@resend.dev>",
+    adminNotifyEmail: "amir@example.com",
+  }, "amir@example.com"), true);
+
+  assert.equal(canSendSupporterEmail({
+    fromEmail: "Amir Fundraiser <fundraiser@example.com>",
+    adminNotifyEmail: "amir@example.com",
+  }, "supporter@example.com"), true);
+});
+
+test("Resend onboarding sender sends admin email and skips unsupported supporter email", async () => {
+  const requests = [];
+  const warnings = [];
+  const result = await sendReservationEmails({
+    resendApiKey: "test-key",
+    fromEmail: "Amir Fundraiser <onboarding@resend.dev>",
+    adminNotifyEmail: "amir@example.com",
+    fundraiserUrl: reservation.fundraiserUrl,
+  }, {
+    ...reservation,
+    email: "supporter@example.com",
+  }, {
+    fetchImpl: async (url, options) => {
+      requests.push({
+        url,
+        body: JSON.parse(options.body),
+      });
+
+      return {
+        ok: true,
+        text: async () => "",
+      };
+    },
+    logger: {
+      log() {},
+      warn(message) { warnings.push(message); },
+      error() {},
+    },
+  });
+
+  assert.deepEqual(result, {
+    supporterEmailSent: false,
+    adminEmailSent: true,
+  });
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].body.to[0], "amir@example.com");
+  assert.equal(requests[0].body.reply_to, "supporter@example.com");
+  assert.equal(requests[0].body.from, "Amir Fundraiser <onboarding@resend.dev>");
+  assert.match(warnings.join("\n"), /onboarding@resend\.dev/);
 });
