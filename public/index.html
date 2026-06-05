@@ -6,47 +6,55 @@
     <title>Andy's Man Club 100-Square Fundraiser</title>
     <link rel="stylesheet" href="styles.css">
   </head>
-  <body>
-    <main class="page-shell">
-      <section class="intro">
-        <div>
-          <p class="eyebrow">Charity 100-square fundraiser</p>
-          <h1>Choose your square</h1>
-          <p class="lede">Pick an available number, reserve it with your details, then donate &pound;5 through the official fundraiser page.</p>
+  <body class="public-page">
+    <main class="public-shell">
+      <section class="fundraiser-hero" aria-labelledby="heroTitle">
+        <div class="hero-inner">
+          <a class="admin-link" href="/admin">Admin</a>
+          <p class="eyebrow">Andy's Man Club fundraiser</p>
+          <h1 id="heroTitle">
+            <span>Choose your square.</span>
+            <span>Back the run.</span>
+            <span>Help men talk.</span>
+          </h1>
+          <p class="lede">Pick a number, reserve it with your details, then donate &pound;5 through the official fundraiser page. Every square helps support Andy's Man Club and the message that it's okay to talk.</p>
         </div>
-        <a class="secondary-link" href="/admin">Admin</a>
       </section>
 
-      <section class="notice" aria-label="Fundraiser information">
-        <p>This fundraiser uses an official donation page. Squares are reserved first and manually confirmed after donation. Please do not claim Gift Aid if your donation is for a prize square/raffle entry.</p>
-      </section>
+      <div class="public-content">
+        <section class="notice" aria-label="Fundraiser information">
+          <p>This fundraiser uses an official donation page. Squares are reserved first and manually confirmed after donation. Please do not claim Gift Aid if your donation is for a prize square/raffle entry.</p>
+        </section>
 
-      <section class="toolbar" aria-label="Square status key">
-        <div class="legend">
-          <span><i class="key available"></i> Available</span>
-          <span><i class="key reserved"></i> Reserved</span>
-          <span><i class="key paid"></i> Paid</span>
-        </div>
-        <p id="publicTotals" class="totals" aria-live="polite"></p>
-      </section>
-
-      <section class="grid-panel" aria-labelledby="gridTitle">
-        <div class="grid-panel-header">
-          <div>
-            <h2 id="gridTitle">Pick a number from 1 to 100</h2>
-            <p>Available squares can be reserved now. Reserved and paid squares are locked while donations are checked.</p>
+        <section class="toolbar" aria-label="Square status key">
+          <div class="legend">
+            <span><i class="key available"></i> Available</span>
+            <span><i class="key reserved"></i> Reserved</span>
+            <span><i class="key paid"></i> Paid</span>
           </div>
-        </div>
-        <div id="statusMessage" class="status-message" aria-live="polite"></div>
-        <div id="squareGrid" class="square-grid" role="grid" aria-label="100 fundraiser squares"></div>
-      </section>
+          <p id="publicTotals" class="totals" aria-live="polite"></p>
+        </section>
 
-      <section id="successPanel" class="success-panel hidden" aria-live="polite" hidden>
-        <h2>Reservation received</h2>
-        <p id="successMessage"></p>
-        <p class="reference" id="successReference"></p>
-        <a id="fundraiserButton" class="primary-button" href="#" target="_blank" rel="noopener">Donate using official fundraiser link</a>
-      </section>
+        <section class="grid-panel" aria-labelledby="gridTitle">
+          <div class="grid-panel-header">
+            <div>
+              <p class="section-kicker">100-square board</p>
+              <h2 id="gridTitle">Pick a number from 1 to 100</h2>
+              <p>Available squares can be reserved now. Reserved and paid squares are locked while donations are checked.</p>
+            </div>
+          </div>
+          <div id="statusMessage" class="status-message" aria-live="polite"></div>
+          <div id="squareGrid" class="square-grid" role="grid" aria-label="100 fundraiser squares"></div>
+        </section>
+
+        <section id="successPanel" class="success-panel hidden" aria-live="polite" hidden>
+          <p class="section-kicker">Next step</p>
+          <h2>Reservation received</h2>
+          <p id="successMessage"></p>
+          <p class="reference" id="successReference"></p>
+          <a id="fundraiserButton" class="primary-button" href="#" target="_blank" rel="noopener">Donate using official fundraiser link</a>
+        </section>
+      </div>
     </main>
 
     <dialog id="reservationDialog" class="reservation-dialog">

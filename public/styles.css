@@ -24,7 +24,7 @@ body {
   line-height: 1.5;
 }
 
-body::before {
+body:not(.public-page)::before {
   content: "";
   display: block;
   height: 10px;
@@ -508,5 +508,421 @@ tr:last-child td {
 @media (max-width: 420px) {
   .admin-summary {
     grid-template-columns: 1fr;
+  }
+}
+
+body.public-page {
+  --public-bg: #070807;
+  --public-panel: #101312;
+  --public-text: #f6f2e8;
+  --public-muted: #b8b9b2;
+  --public-line: rgba(246, 242, 232, 0.16);
+  --public-line-strong: rgba(246, 242, 232, 0.28);
+  --public-accent: #f0c84b;
+  --public-danger: #ff7c72;
+  --public-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
+  --bg: var(--public-bg);
+  --text: var(--public-text);
+  --muted: var(--public-muted);
+  --line: var(--public-line);
+  --surface: var(--public-panel);
+  --available: var(--public-accent);
+  --reserved: #525957;
+  --paid: #e8d68a;
+  --danger: var(--public-danger);
+  --focus: var(--public-accent);
+  --shadow: var(--public-shadow);
+  min-height: 100vh;
+  background: var(--public-bg);
+  color: var(--public-text);
+  overflow-x: hidden;
+}
+
+.public-shell {
+  min-height: 100vh;
+  padding-bottom: 56px;
+}
+
+.fundraiser-hero {
+  position: relative;
+  min-height: 500px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(240, 200, 75, 0.22);
+  background: #050605;
+}
+
+.fundraiser-hero::before,
+.fundraiser-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.fundraiser-hero::before {
+  inset: -22px;
+  background-image: url("assets/andys-man-club-hero.png");
+  background-position: center 26%;
+  background-size: cover;
+  filter: grayscale(1) blur(12px);
+  opacity: 0.72;
+  transform: scale(1.05);
+}
+
+.fundraiser-hero::after {
+  background: rgba(4, 5, 5, 0.76);
+  box-shadow: inset 0 -170px 130px #070807;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 78px 0 116px;
+}
+
+.admin-link {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid rgba(246, 242, 232, 0.18);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: rgba(246, 242, 232, 0.72);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.admin-link:hover {
+  border-color: rgba(240, 200, 75, 0.5);
+  background: rgba(240, 200, 75, 0.08);
+  color: var(--public-text);
+}
+
+.admin-link:focus-visible {
+  outline: 3px solid var(--public-accent);
+  outline-offset: 3px;
+}
+
+.public-page .eyebrow,
+.public-page .section-kicker {
+  margin: 0 0 10px;
+  color: var(--public-accent);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.fundraiser-hero h1 {
+  max-width: 860px;
+  margin: 0 0 18px;
+  color: var(--public-text);
+  font-size: clamp(2.45rem, 7vw, 5.35rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+  overflow-wrap: break-word;
+}
+
+.fundraiser-hero h1 span {
+  display: block;
+}
+
+.public-page .lede {
+  max-width: 760px;
+  color: rgba(246, 242, 232, 0.84);
+  font-size: clamp(1.04rem, 2.3vw, 1.28rem);
+  overflow-wrap: break-word;
+}
+
+.public-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 18px;
+  width: min(1120px, calc(100% - 32px));
+  margin: -58px auto 0;
+}
+
+.public-page .notice,
+.public-page .toolbar,
+.public-page .grid-panel,
+.public-page .success-panel {
+  border: 1px solid var(--public-line);
+  border-radius: 8px;
+  background: rgba(16, 19, 18, 0.94);
+  box-shadow: var(--public-shadow);
+}
+
+.public-page .notice {
+  border-left: 4px solid var(--public-accent);
+  padding: 16px 18px;
+}
+
+.public-page .notice p {
+  color: rgba(246, 242, 232, 0.86);
+  overflow-wrap: break-word;
+}
+
+.public-page .toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.public-page .legend {
+  gap: 10px;
+  color: var(--public-muted);
+}
+
+.public-page .legend span {
+  min-height: 34px;
+  border: 1px solid rgba(246, 242, 232, 0.12);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(246, 242, 232, 0.86);
+  font-weight: 700;
+}
+
+.public-page .key {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+}
+
+.public-page .key.available {
+  border: 1px solid var(--public-accent);
+  background: #111412;
+}
+
+.public-page .key.reserved {
+  background: #525957;
+}
+
+.public-page .key.paid {
+  background: var(--public-accent);
+}
+
+.public-page .totals,
+.public-page .status-message {
+  color: rgba(246, 242, 232, 0.72);
+}
+
+.public-page .grid-panel {
+  padding: 22px;
+}
+
+.public-page .grid-panel-header {
+  margin-bottom: 18px;
+}
+
+.public-page .grid-panel-header h2,
+.public-page .success-panel h2 {
+  color: var(--public-text);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+}
+
+.public-page .grid-panel-header p,
+.public-page .success-panel p {
+  color: var(--public-muted);
+}
+
+.public-page .square-grid {
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.public-page .square {
+  min-width: 0;
+  border-color: rgba(246, 242, 232, 0.14);
+  border-radius: 6px;
+  background: #0a0c0b;
+  color: var(--public-text);
+  font-size: clamp(0.84rem, 1.9vw, 1.02rem);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.public-page .square.available {
+  border-color: rgba(240, 200, 75, 0.54);
+  background: #101310;
+  color: var(--public-accent);
+}
+
+.public-page .square.available:hover,
+.public-page .square.available.selected {
+  border-color: rgba(246, 242, 232, 0.78);
+  background: var(--public-accent);
+  color: #080908;
+  box-shadow: 0 0 0 3px rgba(240, 200, 75, 0.18), 0 10px 24px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.public-page .square.reserved,
+.public-page .square.paid {
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.public-page .square.reserved {
+  border-color: rgba(246, 242, 232, 0.12);
+  background: #3d4442;
+  color: rgba(246, 242, 232, 0.62);
+}
+
+.public-page .square.paid {
+  border-color: rgba(240, 200, 75, 0.86);
+  background: #dbc054;
+  color: #090a09;
+}
+
+.public-page .square.loading {
+  border-color: rgba(246, 242, 232, 0.1);
+  background: #171b19;
+  color: rgba(246, 242, 232, 0.34);
+}
+
+.public-page .success-panel {
+  margin-top: 8px;
+  padding: 22px;
+}
+
+.public-page .reference {
+  color: var(--public-text);
+}
+
+.public-page .primary-button {
+  border: 1px solid rgba(240, 200, 75, 0.8);
+  background: var(--public-accent);
+  color: #080908;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+}
+
+.public-page .primary-button:hover {
+  background: #f4d46c;
+}
+
+.public-page .secondary-button,
+.public-page .icon-button {
+  border-color: var(--public-line);
+  background: #111514;
+  color: var(--public-text);
+}
+
+.public-page .reservation-dialog {
+  border-color: var(--public-line-strong);
+  background: var(--public-panel);
+  color: var(--public-text);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+}
+
+.public-page .reservation-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.public-page .dialog-header {
+  border-bottom: 1px solid var(--public-line);
+  padding-bottom: 12px;
+}
+
+.public-page .dialog-header h2 {
+  color: var(--public-text);
+}
+
+.public-page label {
+  color: var(--public-text);
+}
+
+.public-page input,
+.public-page select {
+  border-color: var(--public-line);
+  background: #080a09;
+  color: var(--public-text);
+}
+
+.public-page input[type="checkbox"] {
+  accent-color: var(--public-accent);
+}
+
+.public-page .checkbox-row {
+  color: var(--public-muted);
+}
+
+.public-page .form-error {
+  color: var(--public-danger);
+}
+
+@media (max-width: 720px) {
+  .fundraiser-hero {
+    min-height: 470px;
+  }
+
+  .fundraiser-hero::before {
+    background-position: 54% 24%;
+  }
+
+  .hero-inner {
+    width: min(1120px, calc(100% - 24px));
+    padding: 78px 0 94px;
+  }
+
+  .admin-link {
+    top: 18px;
+  }
+
+  .public-content {
+    width: min(1120px, calc(100% - 20px));
+    margin-top: -38px;
+  }
+
+  .public-page .toolbar {
+    display: grid;
+    align-items: start;
+  }
+
+  .public-page .legend {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .public-page .legend span {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .public-page .grid-panel,
+  .public-page .success-panel {
+    padding: 16px;
+  }
+
+  .public-page .square-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .fundraiser-hero h1 {
+    font-size: 1.95rem;
+    line-height: 1.04;
+  }
+
+  .public-page .legend {
+    grid-template-columns: 1fr;
+  }
+
+  .public-page .square-grid {
+    gap: 6px;
   }
 }

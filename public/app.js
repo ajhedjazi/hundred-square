@@ -60,6 +60,7 @@
   } = elements;
 
   let selectedSquare = null;
+  let selectedSquareButton = null;
 
   successPanel.hidden = true;
   successPanel.classList.add("hidden");
@@ -72,11 +73,28 @@
     publicTotals.textContent = `${totals.available} available | ${totals.reserved} reserved | ${totals.paid} paid`;
   }
 
-  function openReservationForm(number) {
+  function clearSelectedSquare() {
+    if (!selectedSquareButton) {
+      return;
+    }
+
+    selectedSquareButton.classList.remove("selected");
+    selectedSquareButton.setAttribute("aria-pressed", "false");
+    selectedSquareButton = null;
+  }
+
+  function openReservationForm(number, button) {
+    clearSelectedSquare();
     selectedSquare = number;
+    selectedSquareButton = button;
     selectedSquareLabel.textContent = number;
     form.reset();
     formError.textContent = "";
+
+    if (selectedSquareButton) {
+      selectedSquareButton.classList.add("selected");
+      selectedSquareButton.setAttribute("aria-pressed", "true");
+    }
 
     if (typeof dialog.showModal === "function") {
       dialog.showModal();
@@ -89,6 +107,7 @@
 
   function closeReservationForm() {
     selectedSquare = null;
+    clearSelectedSquare();
 
     if (typeof dialog.close === "function" && dialog.open) {
       dialog.close();
@@ -121,7 +140,8 @@
       button.setAttribute("aria-label", `Square ${square.number}, ${status}`);
 
       if (status === "available") {
-        button.addEventListener("click", () => openReservationForm(square.number));
+        button.setAttribute("aria-pressed", "false");
+        button.addEventListener("click", () => openReservationForm(square.number, button));
       }
 
       grid.appendChild(button);
@@ -215,6 +235,10 @@
   });
 
   closeDialogButton.addEventListener("click", closeReservationForm);
+  dialog.addEventListener("close", () => {
+    selectedSquare = null;
+    clearSelectedSquare();
+  });
 
   renderLoadingSquares();
   loadSquares();
