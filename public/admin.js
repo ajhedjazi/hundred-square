@@ -38,6 +38,11 @@
     }).format(new Date(value));
   }
 
+  function formatCurrency(value) {
+    const amount = Number(value || 0);
+    return amount > 0 ? `\u00a3${amount}` : "";
+  }
+
   async function adminFetch(url, options) {
     const response = await fetch(url, {
       ...options,
@@ -140,6 +145,8 @@
       row.appendChild(createCell(square.name));
       row.appendChild(createCell(square.email));
       row.appendChild(createCell(square.phone));
+      row.appendChild(createCell(formatCurrency(square.expectedDonation)));
+      row.appendChild(createCell(formatDate(square.createdAt)));
       row.appendChild(createCell(formatDate(square.reservedAt)));
       row.appendChild(createCell(formatDate(square.paidAt)));
       row.appendChild(createActionsCell(square));
@@ -149,7 +156,7 @@
     if (squares.length === 0) {
       const row = document.createElement("tr");
       const cell = document.createElement("td");
-      cell.colSpan = 8;
+      cell.colSpan = 10;
       cell.textContent = "No squares match this filter.";
       row.appendChild(cell);
       tableBody.appendChild(row);

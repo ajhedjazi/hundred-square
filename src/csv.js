@@ -4,6 +4,8 @@ const CSV_COLUMNS = [
   ["Name", "name"],
   ["Email", "email"],
   ["Phone", "phone"],
+  ["Expected donation", "expected_donation"],
+  ["Created time", "created_at"],
   ["Reserved time", "reserved_at"],
   ["Paid time", "paid_at"],
 ];
@@ -30,7 +32,10 @@ function createSquaresCsv(rows) {
   const header = CSV_COLUMNS.map(([label]) => escapeCsvValue(label)).join(",");
   const lines = rows.map((row) => {
     return CSV_COLUMNS.map(([, key]) => {
-      const value = key.endsWith("_at") ? formatCsvDate(row[key]) : row[key];
+      const rawValue = key === "expected_donation"
+        ? (row.status === "available" ? "" : "\u00a35")
+        : row[key];
+      const value = key.endsWith("_at") ? formatCsvDate(rawValue) : rawValue;
       return escapeCsvValue(value);
     }).join(",");
   });

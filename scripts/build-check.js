@@ -9,11 +9,15 @@ const requiredFiles = [
   "src/email.js",
   "src/errors.js",
   "src/local-store.js",
+  "src/netlify-handler.js",
+  "src/store.js",
   "public/index.html",
   "public/admin.html",
   "public/app.js",
   "public/admin.js",
   "public/styles.css",
+  "netlify/functions/api.js",
+  "netlify.toml",
 ];
 
 const missing = requiredFiles.filter((file) => {

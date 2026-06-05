@@ -226,6 +226,8 @@ function mapPublicSquare(row) {
 }
 
 function mapAdminSquare(row) {
+  const expectedDonation = row.status === "available" ? 0 : 5;
+
   return {
     id: row.id,
     number: row.number,
@@ -233,6 +235,7 @@ function mapAdminSquare(row) {
     name: row.name,
     email: row.email,
     phone: row.phone,
+    expectedDonation,
     donationReference: row.donation_reference,
     reservedAt: row.reserved_at,
     paidAt: row.paid_at,
