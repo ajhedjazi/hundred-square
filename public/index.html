@@ -20,7 +20,7 @@
               <span hidden>ANDY'S MAN CLUB</span>
             </div>
           </div>
-          <p class="lede">Choose one or more squares, reserve them online, then donate through the official fundraiser link.</p>
+          <p class="lede">Choose your square(s), reserve online, then pay &pound;5 per square by bank transfer. Funds raised support my Andy&rsquo;s Man Club Great North Run fundraiser, with &pound;200 paid to the winning square.</p>
           <div class="hero-summary" aria-label="Fundraiser summary">
             <span>100 squares</span>
             <span>&pound;5 each</span>
@@ -35,40 +35,41 @@
           <div class="section-heading">
             <p class="section-kicker">Important information</p>
             <h2 id="rulesTitle">Fundraiser rules</h2>
-            <p>Reserve your square(s), donate the correct amount, and I will confirm paid entries manually.</p>
+            <p>Choose your square(s), reserve online, pay by bank transfer, and I will confirm paid squares manually. Only paid squares enter the draw.</p>
           </div>
 
           <div class="rules-grid">
             <div>
               <strong>&pound;5 per square</strong>
-              <span>Choose one or more available squares.</span>
+              <span>Each square costs &pound;5.</span>
             </div>
             <div>
               <strong>&pound;200 prize</strong>
-              <span>Winner selected at random from paid squares only.</span>
+              <span>&pound;200 is paid to the winning paid square.</span>
+            </div>
+            <div>
+              <strong>Pay by bank transfer</strong>
+              <span>Bank details are shown after reserving.</span>
             </div>
             <div>
               <strong>Paid entries only</strong>
-              <span>Reserved squares are held for 24 hours pending payment.</span>
+              <span>Only paid squares are entered into the draw.</span>
             </div>
             <div>
-              <strong>16+ and UK only</strong>
-              <span>Please enter only if you meet both requirements.</span>
+              <strong>24-hour payment window</strong>
+              <span>Reserved unpaid squares may be released after 24 hours.</span>
             </div>
             <div>
               <strong>No Gift Aid</strong>
-              <span>Do not claim Gift Aid for prize-square/raffle entries.</span>
-            </div>
-            <div>
-              <strong>Draw timing</strong>
-              <span>Date and time will be confirmed by the organiser.</span>
+              <span>Please do not claim Gift Aid for a prize square/raffle entry.</span>
             </div>
           </div>
 
           <details class="rules-details">
             <summary>More draw details</summary>
             <ul>
-              <li>Unpaid reserved squares may be released and made available again.</li>
+              <li>Please enter only if you are 16 or over and based in the UK.</li>
+              <li>The draw date and time will be confirmed by the organiser.</li>
               <li>The winner will be contacted using the details provided.</li>
               <li>The winner's name will only be shared publicly with permission.</li>
               <li>If all squares do not sell, the organiser may still proceed with paid entries only or extend the fundraiser.</li>
@@ -126,7 +127,7 @@
         </div>
 
         <div class="dialog-summary">
-          <span>Total to donate</span>
+          <span>Total to pay by bank transfer</span>
           <strong id="reservationTotal">&pound;0</strong>
         </div>
 
@@ -170,14 +171,34 @@
             <dd id="confirmationSquares"></dd>
           </div>
           <div>
-            <dt>Total amount to donate</dt>
+            <dt>Total amount to pay</dt>
             <dd id="confirmationAmount"></dd>
           </div>
         </dl>
-        <p>Please now donate using the button below. I'll confirm paid squares manually in the admin dashboard.</p>
-        <p>Only paid squares will be entered into the draw.</p>
-        <p class="gift-aid-warning">Because this is a prize square/raffle entry, please do not claim Gift Aid on this donation.</p>
-        <a id="confirmationDonateButton" class="primary-button donate-button" href="https://bit.ly/amir-gnr-amc" target="_blank" rel="noopener">Donate now</a>
+        <section class="bank-transfer-panel" aria-labelledby="bankTransferTitle">
+          <h3 id="bankTransferTitle">Bank transfer payment</h3>
+          <p>Please send <strong id="confirmationPaymentAmount">&pound;0</strong> by bank transfer to secure your entry.</p>
+          <dl class="bank-details">
+            <div>
+              <dt>Account name</dt>
+              <dd>Amir Hedjazi</dd>
+            </div>
+            <div>
+              <dt>Bank</dt>
+              <dd>NatWest Bank</dd>
+            </div>
+            <div>
+              <dt>Sort code</dt>
+              <dd>53-61-54</dd>
+            </div>
+            <div>
+              <dt>Account number</dt>
+              <dd>69902852</dd>
+            </div>
+          </dl>
+        </section>
+        <p class="payment-status-warning">Your square(s) will only be entered into the draw once payment has been received and confirmed.</p>
+        <p class="gift-aid-warning">Because this is a prize square/raffle entry, please do not claim Gift Aid for your square payment.</p>
       </div>
     </dialog>
 

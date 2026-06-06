@@ -149,7 +149,7 @@
       row.appendChild(createCell(square.name, "Name"));
       row.appendChild(createCell(square.email, "Email"));
       row.appendChild(createCell(square.phone, "Phone"));
-      row.appendChild(createCell(formatCurrency(square.expectedDonation), "Expected donation"));
+      row.appendChild(createCell(formatCurrency(square.expectedDonation), "Expected payment"));
       row.appendChild(createCell(formatDate(square.createdAt), "Created"));
       row.appendChild(createCell(formatDate(square.reservedAt), "Reserved"));
       row.appendChild(createCell(formatDate(square.paidAt), "Paid"));

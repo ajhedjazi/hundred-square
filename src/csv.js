@@ -4,7 +4,7 @@ const CSV_COLUMNS = [
   ["Name", "name"],
   ["Email", "email"],
   ["Phone", "phone"],
-  ["Expected donation", "expected_donation"],
+  ["Expected payment", "expected_donation"],
   ["Created time", "created_at"],
   ["Reserved time", "reserved_at"],
   ["Paid time", "paid_at"],

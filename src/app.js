@@ -102,7 +102,7 @@ function createApp({ store, pool, config }) {
       const numbers = squares.map((square) => square.number);
       const reservedAt = squares[0] && squares[0].reserved_at;
 
-      const message = `Your square${numbers.length === 1 ? " has" : "s have"} been reserved. Please now donate \u00a3${totalAmount} using the button below. Only paid squares will be entered into the draw.`;
+      const message = `Your square${numbers.length === 1 ? " has" : "s have"} been reserved. Please send \u00a3${totalAmount} by bank transfer to secure your entry. Your square${numbers.length === 1 ? " will" : "s will"} only be entered into the draw once payment has been received and confirmed.`;
       let emailResult = {
         supporterEmailSent: false,
         adminEmailSent: false,

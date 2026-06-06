@@ -2,6 +2,13 @@ function formatSquares(numbers) {
   return numbers.length === 1 ? String(numbers[0]) : numbers.join(", ");
 }
 
+const BANK_DETAILS = {
+  accountName: "Amir Hedjazi",
+  bankName: "NatWest Bank",
+  sortCode: "53-61-54",
+  accountNumber: "69902852",
+};
+
 function formatCurrency(amount) {
   return `\u00a3${amount}`;
 }
@@ -83,7 +90,7 @@ function buildAdminReservationEmail(reservation) {
     ...(reservation.phone ? [["Phone", reservation.phone]] : []),
     ["Square(s)", squareNumbers],
     ["Number of squares", String(numbers.length)],
-    ["Expected donation", amount],
+    ["Expected payment", amount],
     ["Status", "Reserved / awaiting payment"],
     ["Reserved at", reservedAt],
   ];
@@ -100,15 +107,12 @@ Name: ${reservation.name}
 Email: ${reservation.email}
 ${phoneLine}Square(s): ${squareNumbers}
 Number of squares: ${numbers.length}
-Expected donation: ${amount}
+Expected payment: ${amount}
 Status: Reserved / awaiting payment
 Reserved at: ${reservedAt}
 
-Fundraiser link:
-${reservation.fundraiserUrl}
-
 Admin reminder:
-Only mark this reservation as paid once the donation has been confirmed.`,
+Only mark this reservation as paid once the bank transfer payment has been received and confirmed.`,
     html: `<!doctype html>
 <html>
   <body style="margin:0;padding:0;background:#f5f5f2;font-family:Arial,Helvetica,sans-serif;color:#222222;">
@@ -117,10 +121,8 @@ Only mark this reservation as paid once the donation has been confirmed.`,
       <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #dddddd;">
         ${buildDetailRows(detailRows)}
       </table>
-      <p style="margin:20px 0 6px;font-weight:700;">Fundraiser link:</p>
-      <p style="margin:0 0 20px;"><a href="${escapeHtml(reservation.fundraiserUrl)}" style="color:#6b5300;">${escapeHtml(reservation.fundraiserUrl)}</a></p>
       <p style="margin:0;padding:12px 14px;background:#fff7d6;border-left:4px solid #d7a900;font-weight:700;">
-        Only mark this reservation as paid once the donation has been confirmed.
+        Only mark this reservation as paid once the bank transfer payment has been received and confirmed.
       </p>
     </div>
   </body>
@@ -141,14 +143,20 @@ function buildSupporterReservationEmail(reservation) {
 Thanks for reserving your square(s).
 
 Reserved square(s): ${squareNumbers}
-Amount to donate: ${amount}
+Amount to pay: ${amount}
 
-Please complete your donation here:
-${reservation.fundraiserUrl}
+Please send payment by bank transfer:
 
-Your square(s) will be entered into the draw once payment has been confirmed.
+${BANK_DETAILS.accountName}
+${BANK_DETAILS.bankName}
+Sort code: ${BANK_DETAILS.sortCode}
+Account number: ${BANK_DETAILS.accountNumber}
 
-Thank you for supporting Andy's Man Club.`,
+Your square(s) will be entered into the draw once payment has been received and confirmed.
+
+Because this is a prize square/raffle entry, please do not claim Gift Aid for your square payment.
+
+Thank you for supporting my Andy's Man Club fundraiser.`,
     html: `<!doctype html>
 <html>
   <body style="margin:0;padding:0;background:#f5f5f2;font-family:Arial,Helvetica,sans-serif;color:#222222;">
@@ -156,11 +164,19 @@ Thank you for supporting Andy's Man Club.`,
       <p style="margin:0 0 14px;">Hi ${escapeHtml(reservation.name)},</p>
       <p style="margin:0 0 14px;">Thanks for reserving your square(s).</p>
       <p style="margin:0 0 6px;"><strong>Reserved square(s):</strong> ${escapeHtml(squareNumbers)}</p>
-      <p style="margin:0 0 18px;"><strong>Amount to donate:</strong> ${escapeHtml(amount)}</p>
-      <p style="margin:0 0 6px;">Please complete your donation here:</p>
-      <p style="margin:0 0 18px;"><a href="${escapeHtml(reservation.fundraiserUrl)}" style="color:#6b5300;font-weight:700;">${escapeHtml(reservation.fundraiserUrl)}</a></p>
-      <p style="margin:0 0 14px;">Your square(s) will be entered into the draw once payment has been confirmed.</p>
-      <p style="margin:0;">Thank you for supporting Andy's Man Club.</p>
+      <p style="margin:0 0 18px;"><strong>Amount to pay:</strong> ${escapeHtml(amount)}</p>
+      <div style="margin:0 0 18px;padding:14px;background:#fff7d6;border:1px solid #d7a900;">
+        <p style="margin:0 0 10px;font-weight:700;">Please send payment by bank transfer:</p>
+        <p style="margin:0;line-height:1.6;">
+          <strong>${escapeHtml(BANK_DETAILS.accountName)}</strong><br>
+          ${escapeHtml(BANK_DETAILS.bankName)}<br>
+          Sort code: <strong>${escapeHtml(BANK_DETAILS.sortCode)}</strong><br>
+          Account number: <strong>${escapeHtml(BANK_DETAILS.accountNumber)}</strong>
+        </p>
+      </div>
+      <p style="margin:0 0 14px;font-weight:700;">Your square(s) will be entered into the draw once payment has been received and confirmed.</p>
+      <p style="margin:0 0 14px;">Because this is a prize square/raffle entry, please do not claim Gift Aid for your square payment.</p>
+      <p style="margin:0;">Thank you for supporting my Andy's Man Club fundraiser.</p>
     </div>
   </body>
 </html>`,

@@ -32,26 +32,31 @@ test("admin reservation email includes supporter and reservation details", () =>
   assert.match(email.text, /Phone: 07123 456789/);
   assert.match(email.text, /Square\(s\): 3, 8/);
   assert.match(email.text, /Number of squares: 2/);
-  assert.match(email.text, /Expected donation: \u00a310/);
+  assert.match(email.text, /Expected payment: \u00a310/);
   assert.match(email.text, /Status: Reserved \/ awaiting payment/);
-  assert.match(email.text, /https:\/\/bit\.ly\/amir-gnr-amc/);
-  assert.match(email.text, /Only mark this reservation as paid once the donation has been confirmed/);
+  assert.match(email.text, /Only mark this reservation as paid once the bank transfer payment has been received and confirmed/);
   assert.match(email.html, /<table/);
+  assert.doesNotMatch(email.text, /https:\/\/bit\.ly\/amir-gnr-amc/);
   assert.doesNotMatch(email.text, /reference/i);
 });
 
-test("supporter reservation email is short and only includes payment essentials", () => {
+test("supporter reservation email includes bank transfer payment essentials", () => {
   const email = buildSupporterReservationEmail(reservation);
 
   assert.equal(email.to, "amir@example.com");
   assert.equal(email.subject, "Your square reservation");
   assert.match(email.text, /Hi Amir/);
   assert.match(email.text, /Reserved square\(s\): 3, 8/);
-  assert.match(email.text, /Amount to donate: \u00a310/);
-  assert.match(email.text, /https:\/\/bit\.ly\/amir-gnr-amc/);
-  assert.match(email.text, /entered into the draw once payment has been confirmed/);
+  assert.match(email.text, /Amount to pay: \u00a310/);
+  assert.match(email.text, /Please send payment by bank transfer/);
+  assert.match(email.text, /Amir Hedjazi/);
+  assert.match(email.text, /NatWest Bank/);
+  assert.match(email.text, /Sort code: 53-61-54/);
+  assert.match(email.text, /Account number: 69902852/);
+  assert.match(email.text, /entered into the draw once payment has been received and confirmed/);
+  assert.match(email.text, /please do not claim Gift Aid for your square payment/i);
+  assert.doesNotMatch(email.text, /https:\/\/bit\.ly\/amir-gnr-amc/);
   assert.doesNotMatch(email.text, /reference/i);
-  assert.doesNotMatch(email.text, /Gift Aid/i);
   assert.doesNotMatch(email.text, /07123/);
   assert.doesNotMatch(email.text, /admin/i);
 });

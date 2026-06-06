@@ -1,6 +1,6 @@
 # Andy's Man Club 100-Square Fundraiser
 
-A small full-stack Node.js and Express app for running a charity 100-square fundraiser. Visitors reserve a square, then donate through your official fundraiser page. The app does not take card payments and does not use Stripe.
+A small full-stack Node.js and Express app for running a charity 100-square fundraiser. Visitors reserve one or more squares, then pay for their entries by bank transfer. The app does not take card payments and does not use Stripe.
 
 ## Features
 
@@ -31,6 +31,8 @@ A small full-stack Node.js and Express app for running a charity 100-square fund
    FUNDRAISER_URL=https://your-official-fundraiser-link
    ```
 
+   `FUNDRAISER_URL` is the general fundraiser page only. Square entry payments use the bank transfer details shown after reservation.
+
 4. Start the app:
 
    ```bash
@@ -43,7 +45,7 @@ The admin page is available at `http://localhost:3000/admin`.
 
 ## Email
 
-If `RESEND_API_KEY` and `FROM_EMAIL` are present, reservation emails are sent through Resend from the server. If `ADMIN_NOTIFY_EMAIL` is also present, the organiser receives a detailed reservation email with the supporter details, selected squares, expected donation, and payment status reminder. If email is not configured or sending fails, the reservation still saves.
+If `RESEND_API_KEY` and `FROM_EMAIL` are present, reservation emails are sent through Resend from the server. Supporter emails include the amount due and bank transfer details. If `ADMIN_NOTIFY_EMAIL` is also present, the organiser receives a detailed reservation email with the supporter details, selected squares, expected payment, and payment status reminder. If email is not configured or sending fails, the reservation still saves.
 
 You can test admin notification emails before verifying a custom domain by using Resend's test sender:
 

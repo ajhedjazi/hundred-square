@@ -108,6 +108,8 @@ test("reservation JSON includes email sent flags when emails are sent", async (t
     assert.equal(data.adminEmailSent, true);
     assert.deepEqual(data.numbers, [4]);
     assert.equal(data.totalAmount, 5);
+    assert.match(data.message, /Please send \u00a35 by bank transfer to secure your entry/);
+    assert.match(data.message, /once payment has been received and confirmed/);
   } finally {
     await close(server);
   }
@@ -148,6 +150,7 @@ test("reservation still saves if email delivery fails", async (t) => {
     assert.equal(data.adminEmailSent, false);
     assert.deepEqual(data.numbers, [6, 7]);
     assert.equal(data.totalAmount, 10);
+    assert.match(data.message, /Please send \u00a310 by bank transfer to secure your entry/);
   } finally {
     await close(server);
   }

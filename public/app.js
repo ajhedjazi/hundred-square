@@ -1,5 +1,5 @@
 (function () {
-  const DONATION_PER_SQUARE = 5;
+  const PAYMENT_PER_SQUARE = 5;
 
   const requiredIds = {
     grid: "squareGrid",
@@ -23,7 +23,7 @@
     closeConfirmationButton: "closeConfirmationButton",
     confirmationSquares: "confirmationSquares",
     confirmationAmount: "confirmationAmount",
-    confirmationDonateButton: "confirmationDonateButton",
+    confirmationPaymentAmount: "confirmationPaymentAmount",
   };
 
   function getRequiredElements(ids) {
@@ -76,7 +76,7 @@
     closeConfirmationButton,
     confirmationSquares,
     confirmationAmount,
-    confirmationDonateButton,
+    confirmationPaymentAmount,
   } = elements;
 
   const pickSquaresButton = document.getElementById("pickSquaresButton");
@@ -110,7 +110,7 @@
   function renderSelectionSummary() {
     const numbers = getSelectedNumbers();
     const count = numbers.length;
-    const total = count * DONATION_PER_SQUARE;
+    const total = count * PAYMENT_PER_SQUARE;
 
     selectedSquaresSummary.textContent = count === 0 ? "None yet" : formatNumbers(numbers);
     selectedCount.textContent = `${count} selected`;
@@ -155,7 +155,7 @@
     selectedSquareLabel.textContent = numbers.length === 1
       ? `square ${numbers[0]}`
       : `squares ${formatNumbers(numbers)}`;
-    reservationTotal.textContent = formatCurrency(numbers.length * DONATION_PER_SQUARE);
+    reservationTotal.textContent = formatCurrency(numbers.length * PAYMENT_PER_SQUARE);
     form.reset();
     formError.textContent = "";
     updateSubmitButton();
@@ -189,12 +189,11 @@
     const numbers = Array.isArray(data.numbers) && data.numbers.length > 0
       ? data.numbers
       : data.squares.map((square) => square.number);
-    const totalAmount = data.totalAmount || numbers.length * DONATION_PER_SQUARE;
+    const totalAmount = data.totalAmount || numbers.length * PAYMENT_PER_SQUARE;
 
     confirmationSquares.textContent = formatNumbers(numbers);
     confirmationAmount.textContent = formatCurrency(totalAmount);
-    confirmationDonateButton.href = data.fundraiserUrl;
-    confirmationDonateButton.textContent = `Donate ${formatCurrency(totalAmount)} now`;
+    confirmationPaymentAmount.textContent = formatCurrency(totalAmount);
 
     if (typeof confirmationDialog.showModal === "function") {
       confirmationDialog.showModal();
