@@ -1,5 +1,6 @@
 const fs = require("fs/promises");
 const path = require("path");
+const { randomUUID } = require("crypto");
 const { createHttpError } = require("./errors");
 
 const VALID_STATUSES = new Set(["available", "reserved", "paid"]);
@@ -17,8 +18,10 @@ function createEmptySquare(number, timestamp) {
     email: null,
     phone: null,
     donation_reference: null,
+    reservation_id: null,
     reserved_at: null,
     paid_at: null,
+    paid_confirmation_email_sent_at: null,
     created_at: timestamp,
     updated_at: timestamp,
   };
@@ -45,32 +48,49 @@ function normalizeData(parsed) {
     }
   }
 
-  return {
-    squares: Array.from({ length: 100 }, (_, index) => {
-      const number = index + 1;
-      const existing = byNumber.get(number);
+  const squares = Array.from({ length: 100 }, (_, index) => {
+    const number = index + 1;
+    const existing = byNumber.get(number);
 
-      if (!existing) {
-        return createEmptySquare(number, timestamp);
-      }
+    if (!existing) {
+      return createEmptySquare(number, timestamp);
+    }
 
-      const status = VALID_STATUSES.has(existing.status) ? existing.status : "available";
+    const status = VALID_STATUSES.has(existing.status) ? existing.status : "available";
 
-      return {
-        id: Number.isInteger(Number(existing.id)) ? Number(existing.id) : number,
-        number,
-        status,
-        name: existing.name || null,
-        email: existing.email || null,
-        phone: existing.phone || null,
-        donation_reference: existing.donation_reference || null,
-        reserved_at: existing.reserved_at || null,
-        paid_at: existing.paid_at || null,
-        created_at: existing.created_at || timestamp,
-        updated_at: existing.updated_at || existing.created_at || timestamp,
-      };
-    }),
-  };
+    return {
+      id: Number.isInteger(Number(existing.id)) ? Number(existing.id) : number,
+      number,
+      status,
+      name: existing.name || null,
+      email: existing.email || null,
+      phone: existing.phone || null,
+      donation_reference: existing.donation_reference || null,
+      reservation_id: existing.reservation_id || null,
+      reserved_at: existing.reserved_at || null,
+      paid_at: existing.paid_at || null,
+      paid_confirmation_email_sent_at: existing.paid_confirmation_email_sent_at || null,
+      created_at: existing.created_at || timestamp,
+      updated_at: existing.updated_at || existing.created_at || timestamp,
+    };
+  });
+  const legacyReservationIds = new Map();
+
+  for (const square of squares) {
+    if (square.status === "available" || square.reservation_id || !square.reserved_at) {
+      continue;
+    }
+
+    const key = `${square.name || ""}\u001f${square.email || ""}\u001f${square.reserved_at}`;
+
+    if (!legacyReservationIds.has(key)) {
+      legacyReservationIds.set(key, randomUUID());
+    }
+
+    square.reservation_id = legacyReservationIds.get(key);
+  }
+
+  return { squares };
 }
 
 function cloneRow(row) {
@@ -147,6 +167,7 @@ async function createLocalFileStore(filePath) {
     }
 
     const timestamp = nowIso();
+    const reservationId = randomUUID();
 
     for (const square of selectedSquares) {
       square.status = "reserved";
@@ -154,8 +175,10 @@ async function createLocalFileStore(filePath) {
       square.email = reservation.email;
       square.phone = reservation.phone || null;
       square.donation_reference = null;
+      square.reservation_id = reservationId;
       square.reserved_at = timestamp;
       square.paid_at = null;
+      square.paid_confirmation_email_sent_at = null;
       square.updated_at = timestamp;
     }
 
@@ -216,11 +239,38 @@ async function createLocalFileStore(filePath) {
         }
 
         const timestamp = nowIso();
-        square.status = "paid";
-        square.paid_at = timestamp;
-        square.updated_at = timestamp;
+        const selectedSquares = square.reservation_id
+          ? data.squares.filter((candidate) => {
+              return candidate.reservation_id === square.reservation_id && candidate.status === "reserved";
+            })
+          : [square];
 
-        return cloneRow(square);
+        for (const selectedSquare of selectedSquares) {
+          selectedSquare.status = "paid";
+          selectedSquare.paid_at = timestamp;
+          selectedSquare.updated_at = timestamp;
+        }
+
+        return {
+          squares: sortByNumber(selectedSquares).map(cloneRow),
+          totalAmount: selectedSquares.length * 5,
+        };
+      }),
+    markPaidConfirmationEmailSent: (numbers) =>
+      mutate(() => {
+        const timestamp = nowIso();
+        const selectedSquares = data.squares.filter((square) => {
+          return numbers.includes(square.number)
+            && square.status === "paid"
+            && !square.paid_confirmation_email_sent_at;
+        });
+
+        for (const square of selectedSquares) {
+          square.paid_confirmation_email_sent_at = timestamp;
+          square.updated_at = timestamp;
+        }
+
+        return sortByNumber(selectedSquares).map(cloneRow);
       }),
     releaseSquare: (number) =>
       mutate(() => {
@@ -235,8 +285,10 @@ async function createLocalFileStore(filePath) {
         square.email = null;
         square.phone = null;
         square.donation_reference = null;
+        square.reservation_id = null;
         square.reserved_at = null;
         square.paid_at = null;
+        square.paid_confirmation_email_sent_at = null;
         square.updated_at = nowIso();
 
         return cloneRow(square);

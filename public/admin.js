@@ -18,8 +18,10 @@
 
   let adminPassword = sessionStorage.getItem("adminPassword") || "";
 
-  function setMessage(message) {
+  function setMessage(message, type = "") {
     adminMessage.textContent = message || "";
+    adminMessage.classList.toggle("success-message", type === "success");
+    adminMessage.classList.toggle("error-message", type === "error");
   }
 
   function setLoggedIn(isLoggedIn) {
@@ -124,14 +126,14 @@
     markPaid.className = "secondary-button";
     markPaid.textContent = "Mark paid";
     markPaid.disabled = square.status !== "reserved";
-    markPaid.addEventListener("click", () => updateSquare(square.number, "paid"));
+    markPaid.addEventListener("click", () => updateSquare(square.number, "paid", row, markPaid));
 
     const release = document.createElement("button");
     release.type = "button";
     release.className = "secondary-button";
     release.textContent = "Release";
     release.disabled = square.status !== "reserved";
-    release.addEventListener("click", () => updateSquare(square.number, "release"));
+    release.addEventListener("click", () => updateSquare(square.number, "release", row, release));
 
     row.appendChild(markPaid);
     row.appendChild(release);
@@ -191,16 +193,42 @@
     }
   }
 
-  async function updateSquare(number, action) {
-    setMessage("Updating...");
+  async function updateSquare(number, action, actionRow, clickedButton) {
+    const buttons = actionRow.querySelectorAll("button");
+    const originalLabel = clickedButton.textContent;
+
+    for (const button of buttons) {
+      button.disabled = true;
+    }
+
+    clickedButton.textContent = action === "paid" ? "Marking paid..." : "Releasing...";
+    setMessage(action === "paid" ? "Marking reservation as paid..." : "Releasing reservation...");
 
     try {
-      await adminFetch(`/api/admin/squares/${number}/${action}`, {
+      const data = await adminFetch(`/api/admin/squares/${number}/${action}`, {
         method: "POST",
       });
       await loadAdminSquares();
+
+      if (action === "paid") {
+        const emailMessage = data.paidConfirmationEmailStatus === "sent"
+          ? "Confirmation email sent."
+          : `Confirmation email ${data.paidConfirmationEmailStatus || "skipped"}.`;
+        const messageType = data.paidConfirmationEmailStatus === "failed" ? "error" : "success";
+        setMessage(`Marked as paid. ${emailMessage}`, messageType);
+      } else {
+        setMessage("Reservation released.", "success");
+      }
     } catch (error) {
-      setMessage(error.message);
+      setMessage(error.message, "error");
+    } finally {
+      if (clickedButton.isConnected) {
+        clickedButton.textContent = originalLabel;
+
+        for (const button of buttons) {
+          button.disabled = false;
+        }
+      }
     }
   }
 

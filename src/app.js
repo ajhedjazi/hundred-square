@@ -7,7 +7,7 @@ const {
   reserveSquares,
 } = require("./db");
 const { createSquaresCsv } = require("./csv");
-const { sendReservationEmails } = require("./email");
+const { sendPaidConfirmationEmail, sendReservationEmails } = require("./email");
 const { createHttpError } = require("./errors");
 const {
   normalizeStatusFilter,
@@ -126,6 +126,7 @@ function createApp({ store, pool, config }) {
         message,
         fundraiserUrl: config.fundraiserUrl,
         supporterEmailSent: emailResult.supporterEmailSent,
+        supporterReservationEmailSent: emailResult.supporterEmailSent,
         adminEmailSent: emailResult.adminEmailSent,
         numbers,
         totalAmount,
@@ -176,10 +177,41 @@ function createApp({ store, pool, config }) {
         throw createHttpError(400, "Choose a valid square from 1 to 100.");
       }
 
-      const square = await storage.markSquarePaid(number);
+      const paidResult = await storage.markSquarePaid(number);
+      const squares = paidResult.squares || [paidResult];
+      const numbers = squares.map((square) => square.number);
+      const totalAmount = paidResult.totalAmount || squares.length * 5;
+      const reservation = {
+        name: squares[0].name,
+        email: squares[0].email,
+        numbers,
+        totalAmount,
+      };
+      let emailResult = {
+        paidConfirmationEmailSent: false,
+        paidConfirmationEmailStatus: "failed",
+      };
+
+      try {
+        emailResult = await sendPaidConfirmationEmail(config, reservation);
+      } catch (emailError) {
+        console.error("Paid confirmation email flow failed:", emailError.message);
+      }
+
+      if (emailResult.paidConfirmationEmailSent && storage.markPaidConfirmationEmailSent) {
+        try {
+          await storage.markPaidConfirmationEmailSent(numbers);
+        } catch (trackingError) {
+          console.error("Paid confirmation email was sent, but delivery tracking failed:", trackingError.message);
+        }
+      }
 
       res.json({
-        square: mapAdminSquare(square),
+        square: mapAdminSquare(squares[0]),
+        squares: squares.map(mapAdminSquare),
+        totalAmount,
+        paidConfirmationEmailSent: emailResult.paidConfirmationEmailSent,
+        paidConfirmationEmailStatus: emailResult.paidConfirmationEmailStatus,
         totals: await storage.getStatusCounts(),
       });
     } catch (error) {

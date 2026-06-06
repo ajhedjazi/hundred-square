@@ -2,8 +2,10 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   buildAdminReservationEmail,
+  buildPaidConfirmationEmail,
   buildSupporterReservationEmail,
   canSendSupporterEmail,
+  sendPaidConfirmationEmail,
   sendReservationEmails,
 } = require("../src/email");
 
@@ -59,6 +61,20 @@ test("supporter reservation email includes bank transfer payment essentials", ()
   assert.doesNotMatch(email.text, /reference/i);
   assert.doesNotMatch(email.text, /07123/);
   assert.doesNotMatch(email.text, /admin/i);
+});
+
+test("paid confirmation email thanks the supporter and confirms all paid squares", () => {
+  const email = buildPaidConfirmationEmail(reservation);
+
+  assert.equal(email.to, "amir@example.com");
+  assert.equal(email.subject, "Your square is confirmed \u2014 thank you");
+  assert.match(email.text, /payment has been received and your square entry is now confirmed/);
+  assert.match(email.text, /Confirmed square\(s\): 3, 8/);
+  assert.match(email.text, /Amount received: \u00a310/);
+  assert.match(email.text, /\u00a3200 prize draw/);
+  assert.match(email.text, /may have helped save another man's life/);
+  assert.doesNotMatch(email.text, /bank transfer/i);
+  assert.doesNotMatch(email.text, /fundraiser link/i);
 });
 
 test("sendReservationEmails sends supporter and admin emails separately", async () => {
@@ -204,4 +220,53 @@ test("Resend onboarding sender sends admin email and skips unsupported supporter
   assert.equal(requests[0].body.reply_to, "supporter@example.com");
   assert.equal(requests[0].body.from, "Amir Fundraiser <onboarding@resend.dev>");
   assert.match(warnings.join("\n"), /onboarding@resend\.dev/);
+});
+
+test("sendPaidConfirmationEmail returns sent, skipped, and failed statuses", async () => {
+  const sentRequests = [];
+  const sent = await sendPaidConfirmationEmail({
+    resendApiKey: "test-key",
+    fromEmail: "Fundraiser <fundraiser@example.com>",
+  }, reservation, {
+    fetchImpl: async (url, options) => {
+      sentRequests.push(JSON.parse(options.body));
+      return { ok: true, text: async () => "" };
+    },
+    logger: { log() {}, warn() {}, error() {} },
+  });
+  const skipped = await sendPaidConfirmationEmail({
+    resendApiKey: "test-key",
+    fromEmail: "Amir Fundraiser <onboarding@resend.dev>",
+    adminNotifyEmail: "admin@example.com",
+  }, reservation, {
+    fetchImpl: async () => {
+      throw new Error("fetch should not be called");
+    },
+    logger: { log() {}, warn() {}, error() {} },
+  });
+  const failed = await sendPaidConfirmationEmail({
+    resendApiKey: "test-key",
+    fromEmail: "Fundraiser <fundraiser@example.com>",
+  }, reservation, {
+    fetchImpl: async () => ({
+      ok: false,
+      status: 500,
+      text: async () => "unavailable",
+    }),
+    logger: { log() {}, warn() {}, error() {} },
+  });
+
+  assert.deepEqual(sent, {
+    paidConfirmationEmailSent: true,
+    paidConfirmationEmailStatus: "sent",
+  });
+  assert.equal(sentRequests.length, 1);
+  assert.deepEqual(skipped, {
+    paidConfirmationEmailSent: false,
+    paidConfirmationEmailStatus: "skipped",
+  });
+  assert.deepEqual(failed, {
+    paidConfirmationEmailSent: false,
+    paidConfirmationEmailStatus: "failed",
+  });
 });

@@ -198,6 +198,14 @@ select:focus-visible {
   min-height: 26px;
 }
 
+.status-message.success-message {
+  color: var(--available);
+}
+
+.status-message.error-message {
+  color: var(--danger);
+}
+
 .grid-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -900,6 +908,14 @@ body.public-page {
 .section-heading p {
   margin: 0;
   color: var(--public-muted);
+}
+
+.section-heading .prize-funding-note {
+  margin-top: 8px;
+  border-left: 4px solid var(--public-accent);
+  padding-left: 12px;
+  color: rgba(246, 242, 232, 0.88);
+  font-weight: 700;
 }
 
 .rules-grid {

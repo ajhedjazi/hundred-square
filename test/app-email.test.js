@@ -75,10 +75,14 @@ function createReservationStore(numbers) {
 }
 
 test("reservation JSON includes email sent flags when emails are sent", async (t) => {
-  t.mock.method(global, "fetch", async () => ({
-    ok: true,
-    text: async () => "",
-  }));
+  const requests = [];
+  t.mock.method(global, "fetch", async (url, options) => {
+    requests.push(JSON.parse(options.body));
+    return {
+      ok: true,
+      text: async () => "",
+    };
+  });
 
   const app = createApp({
     store: createReservationStore([4]),
@@ -105,11 +109,16 @@ test("reservation JSON includes email sent flags when emails are sent", async (t
 
     assert.equal(response.status, 201);
     assert.equal(data.supporterEmailSent, true);
+    assert.equal(data.supporterReservationEmailSent, true);
     assert.equal(data.adminEmailSent, true);
     assert.deepEqual(data.numbers, [4]);
     assert.equal(data.totalAmount, 5);
     assert.match(data.message, /Please send \u00a35 by bank transfer to secure your entry/);
     assert.match(data.message, /once payment has been received and confirmed/);
+    assert.deepEqual(requests.map((request) => request.subject), [
+      "New square reservation: Amir - Square(s) 4",
+      "Your square reservation",
+    ]);
   } finally {
     await close(server);
   }
@@ -147,6 +156,7 @@ test("reservation still saves if email delivery fails", async (t) => {
 
     assert.equal(response.status, 201);
     assert.equal(data.supporterEmailSent, false);
+    assert.equal(data.supporterReservationEmailSent, false);
     assert.equal(data.adminEmailSent, false);
     assert.deepEqual(data.numbers, [6, 7]);
     assert.equal(data.totalAmount, 10);
@@ -197,6 +207,7 @@ test("reservation sends admin email and skips supporter email with Resend onboar
     assert.equal(response.status, 201);
     assert.equal(data.adminEmailSent, true);
     assert.equal(data.supporterEmailSent, false);
+    assert.equal(data.supporterReservationEmailSent, false);
     assert.equal(requests.length, 1);
     assert.equal(requests[0].body.to[0], "amir@example.com");
     assert.equal(requests[0].body.reply_to, "supporter@example.com");

@@ -183,6 +183,43 @@ Thank you for supporting my Andy's Man Club fundraiser.`,
   };
 }
 
+function buildPaidConfirmationEmail(reservation) {
+  const numbers = reservation.numbers || [];
+  const squareNumbers = formatSquares(numbers);
+  const amount = formatCurrency(reservation.totalAmount);
+
+  return {
+    to: reservation.email,
+    subject: "Your square is confirmed \u2014 thank you",
+    text: `Hi ${reservation.name},
+
+Thank you \u2014 your payment has been received and your square entry is now confirmed.
+
+Confirmed square(s): ${squareNumbers}
+Amount received: ${amount}
+
+Your square(s) will be entered into the \u00a3200 prize draw.
+
+Thank you for supporting my Andy's Man Club fundraiser. Your generosity may have helped save another man's life.
+
+Amir`,
+    html: `<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background:#f5f5f2;font-family:Arial,Helvetica,sans-serif;color:#222222;">
+    <div style="max-width:560px;margin:0 auto;padding:24px;">
+      <p style="margin:0 0 14px;">Hi ${escapeHtml(reservation.name)},</p>
+      <p style="margin:0 0 14px;font-weight:700;">Thank you &mdash; your payment has been received and your square entry is now confirmed.</p>
+      <p style="margin:0 0 6px;"><strong>Confirmed square(s):</strong> ${escapeHtml(squareNumbers)}</p>
+      <p style="margin:0 0 18px;"><strong>Amount received:</strong> ${escapeHtml(amount)}</p>
+      <p style="margin:0 0 14px;">Your square(s) will be entered into the &pound;200 prize draw.</p>
+      <p style="margin:0 0 14px;">Thank you for supporting my Andy's Man Club fundraiser. Your generosity may have helped save another man's life.</p>
+      <p style="margin:0;">Amir</p>
+    </div>
+  </body>
+</html>`,
+  };
+}
+
 async function postResendEmail(config, message, fetchImpl) {
   const body = {
     from: config.fromEmail,
@@ -273,8 +310,45 @@ async function sendReservationEmails(config, reservation, options = {}) {
   return result;
 }
 
+async function sendPaidConfirmationEmail(config, reservation, options = {}) {
+  const logger = options.logger || console;
+  const fetchImpl = options.fetchImpl || fetch;
+  const result = {
+    paidConfirmationEmailSent: false,
+    paidConfirmationEmailStatus: "skipped",
+  };
+
+  if (!config.resendApiKey || !config.fromEmail) {
+    logger.log("Paid confirmation email skipped because RESEND_API_KEY or FROM_EMAIL is not configured.");
+    return result;
+  }
+
+  if (!canSendSupporterEmail(config, reservation.email)) {
+    warn(
+      logger,
+      "Paid confirmation email skipped because FROM_EMAIL uses Resend's onboarding@resend.dev test sender. Resend test emails only deliver to the Resend account email address; verify a custom domain before sending supporter confirmations."
+    );
+    return result;
+  }
+
+  try {
+    await postResendEmail(config, buildPaidConfirmationEmail(reservation), fetchImpl);
+    return {
+      paidConfirmationEmailSent: true,
+      paidConfirmationEmailStatus: "sent",
+    };
+  } catch (error) {
+    logger.error(`Paid confirmation email failed: ${error.message}`);
+    return {
+      paidConfirmationEmailSent: false,
+      paidConfirmationEmailStatus: "failed",
+    };
+  }
+}
+
 module.exports = {
   buildAdminReservationEmail,
+  buildPaidConfirmationEmail,
   buildSupporterReservationEmail,
   canSendSupporterEmail,
   escapeHtml,
@@ -282,5 +356,6 @@ module.exports = {
   formatReservedAt,
   formatSquares,
   isResendTestSender,
+  sendPaidConfirmationEmail,
   sendReservationEmails,
 };

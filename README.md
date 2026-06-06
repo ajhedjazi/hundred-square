@@ -9,9 +9,9 @@ A small full-stack Node.js and Express app for running a charity 100-square fund
 - PostgreSQL persistence through `DATABASE_URL`.
 - Automatic table creation and first-start seed for all 100 squares.
 - Admin page at `/admin` protected by `ADMIN_PASSWORD`.
-- Admin filters, totals, mark-as-paid, and release actions.
+- Admin filters, totals, grouped mark-as-paid, and release actions.
 - CSV export for all square entries from the admin page.
-- Optional Resend email support, with console logging fallback.
+- Optional Resend reservation and paid-confirmation emails, with clear logging when delivery is skipped or fails.
 
 ## Local Setup
 
@@ -45,7 +45,7 @@ The admin page is available at `http://localhost:3000/admin`.
 
 ## Email
 
-If `RESEND_API_KEY` and `FROM_EMAIL` are present, reservation emails are sent through Resend from the server. Supporter emails include the amount due and bank transfer details. If `ADMIN_NOTIFY_EMAIL` is also present, the organiser receives a detailed reservation email with the supporter details, selected squares, expected payment, and payment status reminder. If email is not configured or sending fails, the reservation still saves.
+If `RESEND_API_KEY` and `FROM_EMAIL` are present, reservation emails are sent through Resend from the server. Supporter emails include the amount due and bank transfer details. If `ADMIN_NOTIFY_EMAIL` is also present, the organiser receives a detailed reservation email with the supporter details, selected squares, expected payment, and payment status reminder. Marking a reservation paid sends one supporter confirmation email for all squares in that reservation. If email is not configured or sending fails, reservations still save and paid statuses remain confirmed.
 
 You can test admin notification emails before verifying a custom domain by using Resend's test sender:
 
